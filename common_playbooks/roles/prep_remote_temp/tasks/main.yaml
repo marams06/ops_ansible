@@ -1,0 +1,25 @@
+
+- name: Remove remote working temp directory
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }} state=absent
+  become: yes
+
+- name: Create remote working temp directory
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }} state=directory
+  become: yes
+
+
+- name: Create remote working temp directory for rpms
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/rpms state=directory
+  become: yes
+
+- name: Create remote working temp directory for libs
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/libs state=directory
+  become: yes
+
+- name: Create remote working temp directory for python2 wheels
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python2/wheels state=directory
+  become: yes
+
+- name: Create remote working temp directory for python3 wheels
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python3/wheels state=directory
+  become: yes

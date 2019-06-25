@@ -1,0 +1,36 @@
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/rpms
+  file: path=/tmp/{{ UNIX_ID }}/ansible/rpms state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible/rpms
+  file: path=/tmp/{{ UNIX_ID }}/ansible/rpms state=directory mode=0777
+  become: no
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/rpms/ansible_artifacts.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/rpms/ansible_artifacts.tar.gz state=absent
+  become: no
+
+- name: copy ansible_artifacts.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/ansible_artifacts.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/rpms/ansible_artifacts.tar.gz mode=0777
+  become: no
+
+- name: Create gpg directory
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/rpms state=directory
+  become: yes
+
+
+- name: Copy ansible_artifacts.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/rpms/ansible_artifacts.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/rpms/ansible_artifacts.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+
+- name: Extract ansible_artifacts.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/rpms; tar xzf ansible_artifacts.tar.gz
+  register: temp_extract_info
+  become: yes
+
+
+- name: Cleanup ansible_artifacts.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/rpms/ansible_artifacts.tar.gz state=absent
+  become: yes

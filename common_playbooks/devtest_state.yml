@@ -1,0 +1,23 @@
+# Help start
+#  Use it for devtest
+#  This ansible playbook can update local changes to saltmaster for testing purposes.
+#  This can be used to test prior to commiting the code.
+#
+#  Example:
+#  execute-ansible-playbook-common --playbook devtest_deployenv_amlsaltlib.yml --unixid exxxx
+#                                  --sudoid lampt --ansiblehosts saltmaster
+#                                  --environment uat
+#                                  --data '/path/to/aml-salt-lib/arcadia-aulos'
+#
+# Help end
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Updating to /HOME/.salt/deployenv  ======"
+  roles:
+    - { role: devtest_state }

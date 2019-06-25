@@ -1,0 +1,6 @@
+
+
+- include_tasks: check_disk.yml
+  with_list: "{{all_disks}}"
+  loop_control:
+    loop_var: diskname

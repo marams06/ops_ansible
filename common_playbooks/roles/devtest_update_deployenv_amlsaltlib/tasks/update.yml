@@ -1,0 +1,50 @@
+- name: Get the name of the directory
+  set_fact:
+    local_dir_name: "{{ARGDATA | basename }}"
+  become: yes
+  changed_when: false
+
+- name: Archive {{ ARGDATA }}
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/{{local_dir_name}}.tar.gz -C {{ ARGDATA }} .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/saltfiles
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible/saltfiles
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles state=directory mode=0777
+  become: no
+
+
+- name: copy {{local_dir_name}}.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/{{local_dir_name}}.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/{{local_dir_name}}.tar.gz mode=0777
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}}
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}} state=absent
+  become: yes
+
+- name: Create /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}}
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}} state=directory
+  become: yes
+
+- name: Copy {{local_dir_name}}.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/{{local_dir_name}}.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}}/{{local_dir_name}}.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Extract {{local_dir_name}}.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}}; tar xzf {{local_dir_name}}.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Cleanup {{local_dir_name}}.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/amlsaltlib/{{local_dir_name}}/{{local_dir_name}}.tar.gz state=absent
+  become: yes
+
+- name: Cleanup {{local_dir_name}}.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/{{local_dir_name}}.tar.gz state=absent
+  become: no

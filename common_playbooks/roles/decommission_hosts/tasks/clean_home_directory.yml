@@ -1,0 +1,77 @@
+
+
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.source files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.source/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.armor files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.armor/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.devops files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.devops/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.salt files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.salt/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.clusterenv files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.clusterenv/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.gnupg files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.gnupg/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.yaml files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.yaml/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.logs files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.logs/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.tasks files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.tasks/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/'
+  ignore_errors: yes
+
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/privcerts files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/privcerts/'
+  ignore_errors: yes
+
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/certs files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/certs/'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }}/minervacerts files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/{{ PROJECT_USERNAME }}/minervacerts/'
+  ignore_errors: yes
+
+- name: remove bash history
+  shell: 'rm -f /ngs/app/{{ PROJECT_USERNAME }}/.bash_history'
+  ignore_errors: yes
+
+- name: remove bash profile
+  shell: 'rm -f /ngs/app/{{ PROJECT_USERNAME }}/.bash_profile'
+  ignore_errors: yes
+
+- name: remove keytabs
+  shell: 'rm -f /ngs/app/{{ PROJECT_USERNAME }}/*.keytab'
+  ignore_errors: yes
+
+
+- name: remove empty directories
+  shell: 'find /ngs/app/{{ PROJECT_USERNAME }}/ -empty -type d -delete'
+  ignore_errors: yes
+
+- name: remove /ngs/app/{{ PROJECT_USERNAME }} files
+  shell: 'find /ngs/app/{{ PROJECT_USERNAME }}/ -not -path "/ngs/app/{{ PROJECT_USERNAME }}/tmp/*" -delete'
+  ignore_errors: yes

@@ -1,0 +1,6 @@
+
+
+- include_tasks: clean_local.yml
+- include_tasks: update.yml
+- include_tasks: clean_local.yml
+- include_tasks: clean_others.yml

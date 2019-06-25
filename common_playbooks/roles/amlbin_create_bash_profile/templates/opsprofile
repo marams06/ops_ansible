@@ -1,0 +1,27 @@
+if [ "x$OPS_PROFILE_SET" == "x" ]
+then
+  OPS_PROFILE_SET=SET
+  shopt -s expand_aliases
+  LD_LIBRARY_PATH=/ngs/app/amlbin/lib:/ngs/app/amlbin/lib64:$LD_LIBRARY_PATH
+  PKG_CONFIG_PATH=/ngs/app/amlbin/lib/pkgconfig:/ngs/app/amlbin/lib64/pkgconfig:$PKG_CONFIG_PATH
+  PATH=/ngs/app/amlbin/bin:/ngs/app/amlbin/sbin:/ngs/app/amlbin/python2/bin:$PATH
+  alias rpmuser='rpm --dbpath /ngs/app/amlbin/rpmdb/.rpm'
+  alias clear=/usr/bin/clear
+  export LD_LIBRARY_PATH
+  export PKG_CONFIG_PATH
+  export PATH
+  export DEVOPS_PROFILE_SET
+fi
+
+# Devops cmd profile
+if [ "x$INVOKE_CMD_PROFILE_SET" == "x" ];then
+INVOKE_CMD_PROFILE_SET=SET
+alias inv="inv --root=$HOME/.invoke"
+alias invoke="invoke --root=$HOME/.invoke"
+_complete_invoke() {
+local candidates
+candidates=`invoke --complete -- ${COMP_WORDS[*]}`
+COMPREPLY=( $(compgen -W "${candidates}" -- $2) )
+}
+complete -F _complete_invoke -o default invoke inv
+fi

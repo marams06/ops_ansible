@@ -1,0 +1,27 @@
+
+
+
+- name: Cleanup existing /temp/py2wheels/py2wheels.tar.gz
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/py2wheels/py2wheels.tar.gz state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Cleanup existing /temp/py3wheels/py3wheels.tar.gz
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/py3wheels/py3wheels.tar.gz state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/temp/py2wheels
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/py2wheels/py2wheels.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/temp/py2wheels .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/temp/py3wheels
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/py3wheels/py3wheels.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/temp/py3wheels .
+  become: no
+  run_once: true
+  delegate_to: localhost

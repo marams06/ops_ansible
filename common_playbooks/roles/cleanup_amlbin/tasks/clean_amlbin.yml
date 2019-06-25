@@ -1,0 +1,8 @@
+
+- name: Create dir /ngs/app/{{ PROJECT_USERNAME }}/empty_dir
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/empty_dir" state=directory recurse=yes
+  become: yes
+
+- name: remove /ngs/app/amlbin files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /ngs/app/amlbin/'
+  ignore_errors: yes

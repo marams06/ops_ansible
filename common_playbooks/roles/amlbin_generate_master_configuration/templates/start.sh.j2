@@ -1,0 +1,27 @@
+#!/bin/bash
+
+###########################################
+## Salt Master Startup Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+saltmaster_pid=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-master -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+	echo "Process already running: $saltmaster_pid"
+else
+	rm -f /ngs/app/{{ PROJECT_USERNAME }}/.salt/pid/master/saltmaster.pid
+	/ngs/app/amlbin/python2/bin/salt-master -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf --daemon --pid-file=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pid/master/saltmaster.pid
+  sleep 1
+  saltmaster_pid_new=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-master -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf')
+  rcn=$?
+  if [ "$rcn" = "0" ]; then
+  	echo "Salt master started with processes: $saltmaster_pid_new"
+    exit 0
+  else
+    echo "Salt master failer to restart."
+  fi
+fi

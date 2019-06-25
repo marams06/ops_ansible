@@ -1,0 +1,20 @@
+
+- name: Create temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/py3wheels state=directory
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+
+- include_tasks: download_packages.yml
+  with_dict: "{{pythonwheels_definition_content.oel6_python3_bootstrap_packages}}"
+  loop_control:
+    loop_var: wheels
+  when: (bootstrap_definition_content['ansibleprops']['collect_artifacts_locally'] == True and ansible_distribution_major_version == '6')
+
+- include_tasks: download_packages.yml
+  with_dict: "{{pythonwheels_definition_content.oel7_python3_bootstrap_packages}}"
+  loop_control:
+    loop_var: wheels
+  when: (bootstrap_definition_content['ansibleprops']['collect_artifacts_locally'] == True and ansible_distribution_major_version == '7')

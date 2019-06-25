@@ -1,0 +1,52 @@
+
+- stat: path="/ngs/app/{{ PROJECT_USERNAME }}/.ssh/{{ ARGDATA }}"
+  register: sshkey_file
+  become: yes
+
+- name: Remove existing private {{ ARGDATA }} key
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }} state=absent
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Remove existing public {{ ARGDATA }}.pub key
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }}.pub state=absent
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Generate ssh keys
+  shell: ssh-keygen -q -t dsa -f /ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }} -N ""
+  become: yes
+  when: sshkey_file.stat.exists == False
+  args:
+    creates: "/ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }}"
+
+- name: Copy ssh private {{ ARGDATA }} key
+  shell: cp /ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }} /ngs/app/{{ PROJECT_USERNAME }}/.ssh/{{ ARGDATA }}
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Copy public {{ ARGDATA }}.pub key
+  shell: cp /ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }}.pub /ngs/app/{{ PROJECT_USERNAME }}/.ssh/{{ ARGDATA }}.pub
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Set ssh private {{ ARGDATA }} key permissions
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.ssh/{{ ARGDATA }} mode=0600
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Set public {{ ARGDATA }}.pub key permissions
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.ssh/{{ ARGDATA }}.pub mode=0644
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Remove private {{ ARGDATA }} key
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }} state=absent
+  become: yes
+  when: sshkey_file.stat.exists == False
+
+- name: Remove public {{ ARGDATA }}.pub key
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ ARGDATA }}.pub state=absent
+  become: yes
+  when: sshkey_file.stat.exists == False
+

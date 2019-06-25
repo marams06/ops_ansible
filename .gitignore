@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+projectprofile
+startproject
+bin/
+.bashhistory
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+*.retry
+
+
+build/update_command_scripts.sh
+scripts/.id
+scripts/.pass
+scripts/.infra_artifactory
+scripts/.minerva_artifactory
+commands/env/config-ashish_vidyarthi.yaml
+logs/linuxfacts
+logs/linuxvalidation
+logs/minions_status
+
+.env
+.vscode

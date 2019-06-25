@@ -1,0 +1,13 @@
+
+---
+
+- hosts: osupgrade
+  serial: 1
+  gather_facts: yes
+  ignore_errors: yes
+  any_errors_fatal: false
+  max_fail_percentage: 100
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  roles:
+    - os_upgrade

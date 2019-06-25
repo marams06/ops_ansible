@@ -1,0 +1,18 @@
+
+
+- block:
+  - name: Check /ngs/app/{{projectuser}}/.{{projectuser}}.keytab
+    stat:
+      path: /ngs/app/{{projectuser}}/.{{projectuser}}.keytab
+    register: stat_result
+    become: yes
+    become_user: "{{projectuser}}"
+    ignore_errors: yes
+  - name: Report keytab check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_keytabfile:failed:/ngs/app/{{projectuser}}/.{{projectuser}}.keytab"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (stat_result.failed == true)

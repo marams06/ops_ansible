@@ -1,0 +1,55 @@
+
+- name: Cleanup local git temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Create local git temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=directory
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Cleanup remote temp directory
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+
+- name: Create remote temp directory
+  file: path=/tmp/{{ UNIX_ID }}/ansible state=directory mode=0777 recurse=yes
+  become: no
+
+- name: get filename - {{ARGDATA}}
+  shell: basename {{ARGDATA}}
+  register: filename_to_fetch
+  become: yes
+
+- debug:
+  msg: "{{filename_to_fetch}}"
+
+- name: Copy the file to tmp directory - {{ARGDATA}}
+  shell: cp {{ARGDATA}} /tmp/{{ UNIX_ID }}/{{ARGDATA|basename}}
+  register: temp_file_copy_info
+  become: yes
+
+- debug:
+  msg: "{{temp_file_copy_info}}"
+
+- name: Change permissions - /tmp/{{ UNIX_ID }}
+  shell: chmod 777 /tmp/{{ UNIX_ID }}/{{ARGDATA|basename}}
+  register: permission_change
+  become: yes
+
+- debug:
+  msg: "{{permission_change}}"
+
+- fetch:
+    src: /tmp/{{ UNIX_ID }}/{{ARGDATA|basename}}
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/{{ARGDATA|basename}}"
+    flat: yes
+
+- name: Cleanup remote temp directory
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no

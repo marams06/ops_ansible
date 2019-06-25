@@ -1,0 +1,79 @@
+
+- name: Cleanup {{ SALT_PROJECT_GIT_PATH }}/temp
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Create {{ SALT_PROJECT_GIT_PATH }}/temp
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=directory
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible
+  file: path=/tmp/{{ UNIX_ID }}/ansible state=directory mode=0777 recurse=yes
+  become: no
+
+
+- name: get directory name - {{ARGDATA}}
+  shell: basename {{ARGDATA}}
+  register: directory_to_fetch
+  become: yes
+
+- debug: msg="{{ directory_to_fetch }}"
+
+
+- name: Cleanup {{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz
+  file: path={{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz state=absent
+  become: yes
+
+- name: archive {{ARGDATA}}
+  shell: tar czvf {{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz -C  {{ARGDATA}} .
+  register: archive_dir
+  become: yes
+
+- debug: msg="{{archive_dir}}"
+
+- name: Change permissions - {{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz
+  shell: chmod 777 {{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz
+  register: permission_change
+  become: yes
+
+- debug: msg="{{permission_change}}"
+
+
+- name: Copy the file to tmp directory - {{ARGDATA}}
+  shell: cp {{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz /tmp/{{ UNIX_ID }}/ansible/{{ARGDATA|basename}}.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- debug: msg="{{temp_file_copy_info}}"
+
+- name: Change permissions - /tmp/{{ UNIX_ID }}/ansible/{{ARGDATA|basename}}.tar.gz
+  shell: chmod 777 /tmp/{{ UNIX_ID }}/ansible/{{ARGDATA|basename}}.tar.gz
+  register: permission_change
+  become: yes
+
+- debug: msg="{{permission_change}}"
+
+- fetch:
+    src: /tmp/{{ UNIX_ID }}/ansible/{{ARGDATA|basename}}.tar.gz
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/{{ARGDATA|basename}}.tar.gz"
+    flat: yes
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+
+- name: Cleanup {{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz
+  file: path={{ARGDATA|dirname}}/{{ARGDATA|basename}}.tar.gz state=absent
+  become: yes

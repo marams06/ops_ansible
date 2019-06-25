@@ -1,0 +1,8 @@
+- name: Create dir /ngs/app/{{ PROJECT_USERNAME }}/empty_dir
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/empty_dir" state=directory recurse=yes
+  become: yes
+
+- include_tasks: clean_disk.yml
+  with_list: "{{all_disks}}"
+  loop_control:
+    loop_var: diskname

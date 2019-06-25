@@ -1,0 +1,6 @@
+
+
+- include_tasks: check_sysctl.yml
+  with_dict: "{{sysctl_checks}}"
+  loop_control:
+    loop_var: sysctl_item

@@ -1,0 +1,6 @@
+
+
+- include_tasks: check_mount.yml
+  with_list: "{{all_project_users}}"
+  loop_control:
+    loop_var: projectuser

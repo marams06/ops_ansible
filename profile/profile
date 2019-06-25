@@ -1,0 +1,1065 @@
+#!/bin/bash
+
+function _ansiblecommandhelp(){
+
+cat << EOM
+This environment provides commands to help execute ansible playbooks and commands.
+Commands provided (<command> --help):
+
+execute-ansible-help                Prints this help
+execute-ansible-playbook            Runs playbooks
+execute-ansible-module              Runs ansible module commands
+execute-ansible-ping                Runs ansible ping command
+execute-csshx                       Runs csshX with a directly of hosts using host pattern
+
+EOM
+}
+
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  cur_dir=`pwd`
+  partial_file=${BASH_SOURCE[0]}
+  if [[ ${partial_file} == '/'* ]]; then
+      script_file=${partial_file}
+  else
+      script_file=${cur_dir}/${partial_file}
+  fi
+
+  profile_dir=$(dirname ${script_file})
+  export ansible_dir=$(dirname ${profile_dir})
+  ext_git_dir=$(dirname ${ansible_dir})
+  ext_git_dir_basename=$(basename ${ext_git_dir})
+  if [[ "${ext_git_dir_basename}" != "ext_git" ]]; then
+    export ANSIBLE_PROJECT_GIT=no
+  else
+    export ANSIBLE_PROJECT_GIT=yes
+    export ansible_project_dir=$(dirname ${ext_git_dir})
+  fi
+  _ansiblecommandhelp
+else
+  echo "Can not run this! Please source it"
+  echo "Please source it from your project directory"
+  echo "    <your project git>/ext_git/ops_ansible/profile/profile"
+fi
+
+
+execute-ansible-help(){
+  _ansiblecommandhelp
+}
+
+function _playbookhelp(){
+
+cat << EOM
+
+Run playbooks from
+
+    1. <your project git>/ext_git/ops_ansible/common_playbooks
+    2. <your project git>/playbooks
+
+Use <tab> for command completions to see options.
+
+Mandatory parameters
+
+    --common or --project   To choose playbooks
+    --common                If you want to pick common ops_ansible plabooks
+    --project               If you want to pick project specific plabooks
+    --environment           Choose salt environment
+    --inventory             Choose ansible inventory configuration
+    --unixid                Provide your unix id
+    --sudoid                Provide sudo id to use when running playbooks
+    --ansiblehosts or --singlehost
+    --ansiblehosts          Choose a host group to target
+    --singlehost            Choose a single hostname to target
+    --playbook              Choose the plabook to run
+    --doc-playbook          Show playbook documentation
+
+
+Optional parameters supplied to ansible
+
+    --data "VALUE"          Used by some of the common playbooks
+    --check                 No changes; try to predict changes
+    --diff                  Show the differences in those files being changed
+    --flush-cache           Clear the fact cache for every host in inventory
+    --list-hosts            Only outputs a list of matching hosts
+    --list-tasks            List all tasks that would be executed
+    --verbose               Verbose mode
+    --timeout               override the connection timeout in seconds (default=10)
+    --extra-vars "KEY1=VALUE1 KEY2=VALUE2 ..." Provide additional parametrs
+
+Examples:
+
+    execute-ansible-playbook --common --environment prod --inventory inventory.cfg --ansiblehosts devops_new --unixid xxxx --sudoid lampp --playbook validate_host.yml
+
+Documentation:
+
+    execute-ansible-playbook --common --playbook amlbin_bootstrap_python_packages.yml --doc-playbook
+EOM
+}
+
+function _executeansibleplaybook()
+{
+    local cur prev opts cur_env cur_inventory host_names host_groups
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    all_arguments="--help --check --diff --flush-cache --list-hosts --list-tasks --syntax-check --verbose --timeout --playbook --environment --unixid --data --sudoid --ansiblehosts --singlehost --extra-vars --inventory --doc-playbook"
+    if [[ "$prev" == "execute-ansible-playbook" ]]; then
+        COMPREPLY=($( compgen -W "--help --common --project" -- $cur ) )
+        return
+    fi
+    if [[ "$prev" == "--project" ]] || [[ "$prev" == "--common" ]]; then
+        COMPREPLY=($( compgen -W "--environment" -- $cur ) )
+        return
+    fi
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+    case "$prev" in
+        --playbook )
+            local cur_type=${COMP_WORDS[1]}
+            if [[ "$cur_type" == "--common" ]]; then
+                COMPREPLY=($( compgen -W "$(/bin/ls ${ansible_dir}/common_playbooks/*.yml |awk -F "/" '{print $(NF)}')" -- $cur ) )
+                return
+            fi
+            if [[ "$cur_type" == "--project" ]]; then
+                COMPREPLY=($( compgen -W "$(/bin/ls ${ansible_project_dir}/playbooks/*.yml |awk -F "/" '{print $(NF)}')" -- $cur ) )
+                return
+            fi
+            ;;
+        --environment )
+            COMPREPLY=($( compgen -W "$(/bin/ls -d ${ansible_project_dir}/environs/*/ |awk -F "/" '{print $(NF-1)}')" -- $cur ) )
+            return
+            ;;
+        --inventory )
+            local cur_env=${COMP_WORDS[3]}
+            COMPREPLY=($( compgen -W "$(/bin/ls ${ansible_project_dir}/environs/${cur_env}/ansible/*.cfg |awk -F "/" '{print $(NF)}')" -- $cur ) )
+            return
+            ;;
+        --unixid )
+            if [ -e ${ansible_project_dir}/.unixid ]; then
+                local val_list=$(cat ${ansible_project_dir}/.unixid)
+                COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+                return
+            fi
+            COMPREPLY=()
+            return
+            ;;
+        --data )
+            COMPREPLY=()
+            return
+            ;;
+        --sudoid )
+            local val_list=$(cat ${ansible_dir}/sudo_users.cfg | awk 'NF')
+            COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+            return
+            ;;
+        --ansiblehosts )
+            local cur_env=${COMP_WORDS[3]}
+            local cur_inventory=${COMP_WORDS[5]}
+            local host_groups=$(cat environs/$cur_env/ansible/$cur_inventory | grep "\[" | awk -F'[][]' '{print $2}')
+            COMPREPLY=($( compgen -W "$host_groups" -- $cur ) )
+            return
+            ;;
+        --singlehost )
+            local cur_env=${COMP_WORDS[3]}
+            local cur_inventory=${COMP_WORDS[5]}
+            local host_names=$(cat environs/$cur_env/ansible/$cur_inventory | grep -v "\[" | grep -v "^#" |  awk '{print $1}' |awk 'NF')
+            COMPREPLY=($( compgen -W "$host_names" -- $cur ) )
+            return
+            ;;
+        --extra-vars )
+            COMPREPLY=()
+            return
+            ;;
+        --* )
+            COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+            return
+            ;;
+    esac
+    if [[ "$cur" != -* ]]; then
+        if [[ $COMP_CWORD -eq 4 ]]; then
+            COMPREPLY=($( compgen -W "--inventory" -- $cur ) )
+            return
+        fi
+        if [[ $COMP_CWORD -gt 4 ]]; then
+            local prevprev="${COMP_WORDS[COMP_CWORD-2]}"
+            if [[ "$prevprev" == "--unixid" ]]; then
+                # Cache the current eid
+                echo $prev > ${ansible_project_dir}/.unixid
+            fi
+        fi
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+
+
+}
+
+function execute-ansible-playbook(){
+    numargs=$#
+    var_playbook=
+    var_environment=none
+    var_unixid=none
+    var_sudoid=none
+    var_ansiblehosts=none
+    var_singlehost=
+    var_help=none
+    var_data=none
+    arg_playbook=
+    arg_inventory=
+    extra_args=
+    arg_sudo=
+    arg_limit=
+    arg_unixid=
+    arg_sudo_style=
+    var_playbookhelp=
+    var_playbookpath=
+    arg_extra_vars="EXT_GIT_PATH=${ext_git_dir} SALT_PROJECT_GIT_PATH=${ansible_project_dir}"
+    for ((i=1 ; i <= numargs ; i++))
+    do
+        if [[ "x$1" == "x" ]];  then
+            break
+        fi
+        case "$1" in
+            --common)
+                var_playbookpath=${ansible_dir}/common_playbooks
+                shift
+                ;;
+            --project)
+                var_playbookpath=${ansible_project_dir}/playbooks
+                shift
+                ;;
+            --playbook)
+                var_playbook=$2
+                shift 2
+                ;;
+            --environment)
+                var_environment=$2
+                arg_extra_vars="${arg_extra_vars} ANSIBLE_PROJECT_ENV=${var_environment}"
+                shift 2
+                ;;
+            --inventory)
+                var_inventory=$2
+                arg_inventory="-i ${ansible_project_dir}/environs/${var_environment}/ansible/${var_inventory} "
+                shift 2
+                ;;
+            --sudoid)
+                var_sudoid=$2
+                arg_sudo="--become-method=sudo --become --become-user=${var_sudoid} "
+                arg_extra_vars="${arg_extra_vars} PROJECT_USERNAME=${var_sudoid}"
+                shift 2
+                ;;
+            --ansiblehosts)
+                var_ansiblehosts=$2
+                arg_limit="--limit ${var_ansiblehosts} "
+                shift 2
+                ;;
+            --singlehost)
+                var_singlehost=$2
+                arg_limit="--limit ${var_singlehost} "
+                shift 2
+                ;;
+            --unixid)
+                var_unixid=$2
+                arg_unixid="--user=${var_unixid} "
+                arg_extra_vars="${arg_extra_vars} UNIX_ID=${var_unixid}"
+                shift 2
+                ;;
+            --data)
+                var_data=$2
+                arg_extra_vars="${arg_extra_vars} ARGDATA=${var_data}"
+                shift 2
+                ;;
+            --extra-vars)
+                var_extra_data=$2
+                arg_extra_vars="${arg_extra_vars} ${var_extra_data}"
+                shift 2
+                ;;
+            --help)
+                var_help=help
+                shift
+                ;;
+            --doc-playbook)
+                var_playbookhelp=help
+                shift
+                ;;
+            --common)
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                extra_args="${extra_args} $1"
+                shift
+                ;;
+        esac
+    done
+
+    # Show help
+    if [[ "$var_help" == "help" ]]; then
+        _playbookhelp
+        return 0
+    fi
+    # Main mandatory parameter
+    if [[ x"$var_playbook" == "x" ]]; then
+        echo "Error: Please provide the playbook to run with parameter --playbook"
+        _playbookhelp
+        return 1
+    fi
+    # create playbook path
+    arg_playbook=${var_playbookpath}/${var_playbook}
+    # Show help
+    if [[ "$var_playbookhelp" == "help" ]]; then
+        awk '/Help start/ { show=1 } show; /Help end/ { show=0 }' ${arg_playbook} | sed '/^#.*/s/^#//' | sed 's/ Help start//g' | sed 's/ Help end//g'
+        return 0
+    fi
+
+    # Record inputs
+    echo
+    echo "Playbook: $arg_playbook"
+    echo "Environment: $var_environment"
+    echo "Unix Id: $var_unixid"
+    echo "Sudo Id: $var_sudoid"
+    echo "Ansible Host or Groups: $var_ansiblehosts"
+    echo "Additional arguments: $extra_args"
+    echo "Additional vars:"
+    for one_var in ${arg_extra_vars}; do
+        echo "  $one_var"
+    done
+    echo
+    echo "Executing ansible playbook: ......"
+    echo
+
+
+    # Clean ansible log
+    rm -f /tmp/ops_ansible.log
+
+    arg_sudo_style=
+    # Treat local ansible playbooks differently
+    if [[ $var_playbook == local* ]] ; then
+        arg_inventory='-i "localhost," '
+        arg_limit="--limit localhost "
+        arg_sudo=
+        arg_sudo_style=
+        arg_unixid=
+    else
+        # We require sudo / unix
+        if [[ x"$arg_sudo" != "x" ]]; then
+            if [ -f ${HOME}/.vaultpass ]; then
+                arg_sudo_style="--vault-password-file=${HOME}/.vaultpass"
+            else
+                arg_sudo_style='--ask-become-pass'
+            fi
+        fi
+        # More parameter checks
+        if [[ x"$var_environment" == "x" ]]; then
+            echo "Error: Please provide the salt environment with --environment"
+            return 1
+        fi
+        if [[ x"$var_unixid" == "x" ]]; then
+            echo "Error: Please provide the unix id with --unixid"
+            return 1
+        fi
+        if [[ x"$arg_limit" == "x" ]]; then
+            echo "Error: Please provide the ansible target with --ansiblehosts or --singlehost"
+            return 1
+        fi
+    fi
+
+    builtin cd ${ansible_dir}
+    ansible-playbook ${arg_playbook} \
+                     ${arg_inventory} \
+                     ${arg_sudo} \
+                     ${arg_sudo_style} \
+                     ${arg_unixid} \
+                     ${arg_limit} \
+                     --extra-vars "${arg_extra_vars}" \
+                     ${extra_args}
+    builtin cd $cur_dir
+}
+
+function _pinghelp(){
+
+cat << EOM
+
+Run ping command against specified targets.
+Use <tab> for command completions to see options.
+
+Mandatory parameters
+
+    --environment           Choose salt environment
+    --inventory             Choose ansible inventory configuration
+    --unixid                Provide your unix id
+    --sudoid                Provide sudo id to use when running playbooks
+    --ansiblehosts or --singlehost
+    --ansiblehosts          Choose a host group to target
+    --singlehost            Choose a single hostname to target
+
+
+Optional parameters supplied to ansible
+
+    --list-hosts            Only outputs a list of matching hosts
+    --list-tasks            List all tasks that would be executed
+    --verbose               Verbose mode
+    --timeout               override the connection timeout in seconds (default=10)
+
+Example
+
+    execute-ansible-ping --environment prod --inventory inventory.cfg --ansiblehosts proxies
+    execute-ansible-ping --environment prod --inventory inventory.cfg --singlehost rn2-lampp-lapp4001.rno.apple.com
+    execute-ansible-ping --environment prod --inventory inventory.cfg --ansiblehosts proxies --unixid <unixid> --sudoid <sudoid>
+EOM
+}
+
+function _executeansibleping()
+{
+    local cur prev opts cur_env cur_inventory host_names host_groups
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    all_arguments="--help --check --diff --flush-cache --list-hosts --list-tasks --syntax-check --verbose --timeout --environment --unixid --data --sudoid --ansiblehosts --singlehost --extra-vars --inventory"
+    if [[ "$prev" == "execute-ansible-ping" ]]; then
+        COMPREPLY=($( compgen -W "--help --environment" -- $cur ) )
+        return
+    fi
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+    case "$prev" in
+        --environment )
+            COMPREPLY=($( compgen -W "$(/bin/ls -d ${ansible_project_dir}/environs/*/ |awk -F "/" '{print $(NF-1)}')" -- $cur ) )
+            return
+            ;;
+        --inventory )
+            local cur_env=${COMP_WORDS[2]}
+            COMPREPLY=($( compgen -W "$(/bin/ls ${ansible_project_dir}/environs/${cur_env}/ansible/*.cfg |awk -F "/" '{print $(NF)}')" -- $cur ) )
+            return
+            ;;
+        --unixid )
+            if [ -e ${ansible_project_dir}/.unixid ]; then
+                local val_list=$(cat ${ansible_project_dir}/.unixid)
+                COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+                return
+            fi
+            COMPREPLY=()
+            return
+            ;;
+        --data )
+            COMPREPLY=()
+            return
+            ;;
+        --sudoid )
+            local val_list=$(cat ${ansible_dir}/sudo_users.cfg | awk 'NF')
+            COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+            return
+            ;;
+        --ansiblehosts )
+            local cur_env=${COMP_WORDS[2]}
+            local cur_inventory=${COMP_WORDS[4]}
+            local host_groups=$(cat environs/$cur_env/ansible/$cur_inventory | grep "\[" | awk -F'[][]' '{print $2}')
+            COMPREPLY=($( compgen -W "$host_groups" -- $cur ) )
+            return
+            ;;
+        --singlehost )
+            local cur_env=${COMP_WORDS[2]}
+            local cur_inventory=${COMP_WORDS[4]}
+            local host_names=$(cat environs/$cur_env/ansible/$cur_inventory | grep -v "\[" | grep -v "^#" |  awk '{print $1}' | awk 'NF')
+            COMPREPLY=($( compgen -W "$host_names" -- $cur ) )
+            return
+            ;;
+        --extra-vars )
+            COMPREPLY=()
+            return
+            ;;
+        --* )
+            COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+            return
+            ;;
+    esac
+    if [[ "$cur" != -* ]]; then
+        if [[ $COMP_CWORD -eq 3 ]]; then
+            COMPREPLY=($( compgen -W "--inventory" -- $cur ) )
+            return
+        fi
+        if [[ $COMP_CWORD -gt 3 ]]; then
+            prevprev="${COMP_WORDS[COMP_CWORD-2]}"
+            if [[ "$prevprev" == "--unixid" ]]; then
+                # Cache the current eid
+                echo $prev > ${ansible_project_dir}/.unixid
+            fi
+        fi
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+
+
+}
+
+
+function execute-ansible-ping(){
+    numargs=$#
+    var_local=
+    var_environment=none
+    var_unixid=none
+    var_sudoid=none
+    var_ansiblehosts=none
+    var_singlehost=
+    var_help=none
+    var_data=none
+    arg_playbook=
+    arg_inventory=
+    extra_args=
+    arg_sudo=
+    arg_limit=
+    arg_unixid=
+    arg_sudo_style=
+    arg_extra_vars="EXT_GIT_PATH=${ext_git_dir} SALT_PROJECT_GIT_PATH=${ansible_project_dir}"
+    for ((i=1 ; i <= numargs ; i++))
+    do
+        if [[ "x$1" == "x" ]];  then
+            break
+        fi
+        case "$1" in
+            --environment)
+                var_environment=$2
+                arg_extra_vars="${arg_extra_vars} ANSIBLE_PROJECT_ENV=${var_environment}"
+                shift 2
+                ;;
+            --inventory)
+                var_inventory=$2
+                arg_inventory="-i ${ansible_project_dir}/environs/${var_environment}/ansible/${var_inventory} "
+                shift 2
+                ;;
+            --sudoid)
+                var_sudoid=$2
+                arg_sudo="--become-method=sudo --become --become-user=${var_sudoid} "
+                arg_extra_vars="${arg_extra_vars} PROJECT_USERNAME=${var_sudoid}"
+                shift 2
+                ;;
+            --ansiblehosts)
+                var_ansiblehosts=$2
+                arg_limit="${var_ansiblehosts} "
+                shift 2
+                ;;
+            --singlehost)
+                var_singlehost=$2
+                arg_limit="${var_singlehost} "
+                shift 2
+                ;;
+            --unixid)
+                var_unixid=$2
+                arg_unixid="--user=${var_unixid} "
+                arg_extra_vars="${arg_extra_vars} UNIX_ID=${var_unixid}"
+                shift 2
+                ;;
+            --extra-vars)
+                var_extra_data=$2
+                arg_extra_vars="${arg_extra_vars} ${var_extra_data}"
+                shift 2
+                ;;
+            --help)
+                var_help=help
+                shift
+                ;;
+            --common)
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                extra_args="${extra_args} $1"
+                shift
+                ;;
+        esac
+    done
+
+    # Show help
+    if [[ "$var_help" == "help" ]]; then
+        _pinghelp
+        return 0
+    fi
+
+    # Record inputs
+    echo
+    echo "Environment: $var_environment"
+    echo "Unix Id: $var_unixid"
+    echo "Sudo Id: $var_sudoid"
+    echo "Ansible Host or Groups: $var_ansiblehosts"
+    echo "Additional arguments: $extra_args"
+    echo "Additional vars:"
+    for one_var in ${arg_extra_vars}; do
+        echo "  $one_var"
+    done
+    echo
+    echo "Executing ansible ping: ......"
+    echo
+
+
+    # Clean ansible log
+    rm -f /tmp/ops_ansible.log
+
+    arg_sudo_style=
+    # Treat local ansible differently
+    if [[ x"$var_local" != "x" ]] ; then
+        arg_inventory='-i "localhost," '
+        arg_limit="--limit localhost "
+        arg_sudo=
+        arg_sudo_style=
+        arg_unixid=
+    else
+        # We require sudo / unix
+        if [[ x"$arg_sudo" != "x" ]]; then
+            if [ -f ${HOME}/.vaultpass ]; then
+                arg_sudo_style="--vault-password-file=${HOME}/.vaultpass"
+            else
+                arg_sudo_style='--ask-become-pass'
+            fi
+        fi
+        # More parameter checks
+        if [[ x"$var_environment" == "x" ]]; then
+            echo "Error: Please provide the salt environment with --environment"
+            return 1
+        fi
+        if [[ x"$var_unixid" == "x" ]]; then
+            echo "Error: Please provide the unix id with --unixid"
+            return 1
+        fi
+        if [[ x"$arg_limit" == "x" ]]; then
+            echo "Error: Please provide the ansible target with --ansiblehosts"
+            return 1
+        fi
+    fi
+
+    builtin cd ${ansible_dir}
+    ansible ${arg_limit} \
+            ${arg_inventory} \
+            ${arg_sudo} \
+            ${arg_sudo_style} \
+            ${arg_unixid} \
+            --extra-vars "${arg_extra_vars}" \
+            ${extra_args} \
+            --module-name=ping \
+            --one-line
+    builtin cd $cur_dir
+}
+
+
+function _modulehelp(){
+
+cat << EOM
+
+Run module command against specified targets.
+Use <tab> for command completions to see options.
+
+Mandatory parameters
+
+    --environment           Choose salt environment
+    --inventory             Choose ansible inventory configuration
+    --unixid                Provide your unix id
+    --sudoid                Provide sudo id to use when running playbooks
+    --ansiblehosts or --singlehost
+    --ansiblehosts          Choose a host group to target
+    --singlehost            Choose a single hostname to target
+    --module                Module name to execute (default=command)
+    --command               Module arguments
+
+
+Optional parameters supplied to ansible
+
+    --fork                  Specify number of parallel processes to use (default=1)
+    --list-hosts            Only outputs a list of matching hosts
+    --list-tasks            List all tasks that would be executed
+    --verbose               Verbose mode
+    --timeout               override the connection timeout in seconds (default=10)
+
+Examples
+
+    execute-ansible-module --environment prod --inventory inventory.cfg --ansiblehosts devops_new --unixid xxxx --sudoid lampp  --module command --command 'uptime'
+    execute-ansible-module --environment prod --inventory inventory.cfg --ansiblehosts devops_new --unixid xxxx --sudoid lampp  --module comand --command 'sh ~/.roles_devops/monitops/summary.sh'
+EOM
+}
+
+function _executeansiblemodule()
+{
+    local cur prev opts cur_env cur_inventory host_names host_groups
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    all_arguments="--help --module --command --fork --check --diff --flush-cache --list-hosts --list-tasks --syntax-check --verbose --timeout --environment --unixid --data --sudoid --ansiblehosts --singlehost --extra-vars --inventory"
+    if [[ "$prev" == "execute-ansible-module" ]]; then
+        COMPREPLY=($( compgen -W "--help --environment" -- $cur ) )
+        return
+    fi
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+    case "$prev" in
+        --module )
+            COMPREPLY=()
+            return
+            ;;
+        --command )
+            COMPREPLY=()
+            return
+            ;;
+        --fork )
+            COMPREPLY=()
+            return
+            ;;
+        --environment )
+            COMPREPLY=($( compgen -W "$(/bin/ls -d ${ansible_project_dir}/environs/*/ |awk -F "/" '{print $(NF-1)}')" -- $cur ) )
+            return
+            ;;
+        --inventory )
+            local cur_env=${COMP_WORDS[2]}
+            COMPREPLY=($( compgen -W "$(/bin/ls ${ansible_project_dir}/environs/${cur_env}/ansible/*.cfg |awk -F "/" '{print $(NF)}')" -- $cur ) )
+            return
+            ;;
+        --unixid )
+            if [ -e ${ansible_project_dir}/.unixid ]; then
+                local val_list=$(cat ${ansible_project_dir}/.unixid)
+                COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+                return
+            fi
+            COMPREPLY=()
+            return
+            ;;
+        --data )
+            COMPREPLY=()
+            return
+            ;;
+        --sudoid )
+            local val_list=$(cat ${ansible_dir}/sudo_users.cfg | awk 'NF')
+            COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+            return
+            ;;
+        --ansiblehosts )
+            local cur_env=${COMP_WORDS[2]}
+            local cur_inventory=${COMP_WORDS[4]}
+            local host_groups=$(cat environs/$cur_env/ansible/$cur_inventory | grep "\[" | awk -F'[][]' '{print $2}')
+            COMPREPLY=($( compgen -W "$host_groups" -- $cur ) )
+            return
+            ;;
+        --singlehost )
+            local cur_env=${COMP_WORDS[2]}
+            local cur_inventory=${COMP_WORDS[4]}
+            local host_names=$(cat environs/$cur_env/ansible/$cur_inventory | grep -v "\[" | grep -v "^#" |  awk '{print $1}' | awk 'NF')
+            COMPREPLY=($( compgen -W "$host_names" -- $cur ) )
+            return
+            ;;
+        --extra-vars )
+            COMPREPLY=()
+            return
+            ;;
+        --* )
+            COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+            return
+            ;;
+    esac
+    if [[ "$cur" != -* ]]; then
+        if [[ $COMP_CWORD -eq 3 ]]; then
+            COMPREPLY=($( compgen -W "--inventory" -- $cur ) )
+            return
+        fi
+        if [[ $COMP_CWORD -gt 3 ]]; then
+            prevprev="${COMP_WORDS[COMP_CWORD-2]}"
+            if [[ "$prevprev" == "--unixid" ]]; then
+                # Cache the current eid
+                echo $prev > ${ansible_project_dir}/.unixid
+            fi
+        fi
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+
+
+}
+
+function execute-ansible-module(){
+    numargs=$#
+    var_local=
+    var_environment=none
+    var_unixid=none
+    var_sudoid=none
+    var_ansiblehosts=none
+    var_singlehost=
+    var_help=none
+    var_data=none
+    arg_playbook=
+    arg_inventory=
+    extra_args=
+    arg_sudo=
+    arg_limit=
+    arg_unixid=
+    arg_sudo_style=
+    arg_module=
+    arg_fork="--forks=1"
+    arg_extra_vars="EXT_GIT_PATH=${ext_git_dir} SALT_PROJECT_GIT_PATH=${ansible_project_dir}"
+    for ((i=1 ; i <= numargs ; i++))
+    do
+        if [[ "x$1" == "x" ]];  then
+            break
+        fi
+        case "$1" in
+            -m|--module)
+                var_module=$2
+                arg_module="--module-name=${var_module}"
+                shift 2
+                ;;
+            -c|--command)
+                var_command=$2
+                shift 2
+                ;;
+            --environment)
+                var_environment=$2
+                arg_extra_vars="${arg_extra_vars} ANSIBLE_PROJECT_ENV=${var_environment}"
+                shift 2
+                ;;
+            --inventory)
+                var_inventory=$2
+                arg_inventory="-i ${ansible_project_dir}/environs/${var_environment}/ansible/${var_inventory} "
+                shift 2
+                ;;
+            --sudoid)
+                var_sudoid=$2
+                arg_sudo="--become-method=sudo --become --become-user=${var_sudoid} "
+                arg_extra_vars="${arg_extra_vars} PROJECT_USERNAME=${var_sudoid}"
+                shift 2
+                ;;
+            --ansiblehosts)
+                var_ansiblehosts=$2
+                arg_limit="${var_ansiblehosts} "
+                shift 2
+                ;;
+            --singlehost)
+                var_singlehost=$2
+                arg_limit="${var_singlehost} "
+                shift 2
+                ;;
+            --unixid)
+                var_unixid=$2
+                arg_unixid="--user=${var_unixid} "
+                arg_extra_vars="${arg_extra_vars} UNIX_ID=${var_unixid}"
+                shift 2
+                ;;
+            --extra-vars)
+                var_extra_data=$2
+                arg_extra_vars="${arg_extra_vars} ${var_extra_data}"
+                shift 2
+                ;;
+            --fork)
+                var_fork=$2
+                arg_fork="--forks=${var_fork}"
+                shift 2
+                ;;
+            --help)
+                var_help=help
+                shift
+                ;;
+            --common)
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                extra_args="${extra_args} $1"
+                shift
+                ;;
+        esac
+    done
+
+    # Show help
+    if [[ "$var_help" == "help" ]]; then
+        _modulehelp
+        return 0
+    fi
+
+    # Record inputs
+    echo
+    echo "Environment: $var_environment"
+    echo "Unix Id: $var_unixid"
+    echo "Sudo Id: $var_sudoid"
+    echo "Ansible Host or Groups: $var_ansiblehosts"
+    echo "Additional arguments: $extra_args"
+    echo "Additional vars:"
+    for one_var in ${arg_extra_vars}; do
+        echo "  $one_var"
+    done
+    echo
+    echo "Executing ansible ping: ......"
+    echo
+
+
+    # Clean ansible log
+    rm -f /tmp/ops_ansible.log
+
+    arg_sudo_style=
+    # Treat local ansible differently
+    if [[ x"$var_local" != "x" ]] ; then
+        arg_inventory='-i "localhost," '
+        arg_limit="--limit localhost "
+        arg_sudo=
+        arg_sudo_style=
+        arg_unixid=
+    else
+        # We require sudo / unix
+        if [[ x"$arg_sudo" != "x" ]]; then
+            if [ -f ${HOME}/.vaultpass ]; then
+                arg_sudo_style="--vault-password-file=${HOME}/.vaultpass"
+            else
+                arg_sudo_style='--ask-become-pass'
+            fi
+        fi
+        # More parameter checks
+        if [[ x"$var_environment" == "x" ]]; then
+            echo "Error: Please provide the salt environment with --environment"
+            return 1
+        fi
+        if [[ x"$var_unixid" == "x" ]]; then
+            echo "Error: Please provide the unix id with --unixid"
+            return 1
+        fi
+        if [[ x"$arg_limit" == "x" ]]; then
+            echo "Error: Please provide the ansible target with --ansiblehosts"
+            return 1
+        fi
+    fi
+
+    builtin cd ${ansible_dir}
+    ansible ${arg_limit} \
+            ${arg_inventory} \
+            ${arg_sudo} \
+            ${arg_sudo_style} \
+            ${arg_unixid} \
+            --extra-vars "${arg_extra_vars}" \
+            ${extra_args} \
+            ${arg_fork} \
+            ${arg_module} \
+            --args="${var_command}"
+    builtin cd $cur_dir
+}
+
+
+#
+# csshX support
+#
+
+function _csshxhelp(){
+
+cat << EOM
+
+Executes csshX on specified lists of hosts or host pattern.
+Use <tab> for command completions to see options.
+
+Mandatory parameters
+
+    --unixid                Provide your unix id
+    --hostpattern           Provide list of hosts seperated by space
+
+Examples
+
+    execute-csshx --unixid XXXXX --hostpattern rn3-lampp-lapp1342.rno.apple.com rn3-lampp-lapp1343.rno.apple.com
+
+EOM
+}
+
+function _executecsshx()
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    all_arguments="--help --unixid --hostpattern"
+    if [[ "$prev" == "execute-csshx" ]]; then
+        COMPREPLY=($( compgen -W "--help --unixid" -- $cur ) )
+        return
+    fi
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+    case "$prev" in
+        --unixid )
+            if [ -e ${ansible_project_dir}/.unixid ]; then
+                local val_list=$(cat ${ansible_project_dir}/.unixid)
+                COMPREPLY=($( compgen -W "$val_list" -- $cur ) )
+                return
+            fi
+            COMPREPLY=()
+            return
+            ;;
+        --hostpattern )
+            COMPREPLY=()
+            return
+            ;;
+    esac
+    if [[ "$cur" != -* ]]; then
+        if [[ $COMP_CWORD -gt 2 ]]; then
+            prevprev="${COMP_WORDS[COMP_CWORD-2]}"
+            if [[ "$prevprev" == "--unixid" ]]; then
+                # Cache the current eid
+                echo $prev > ${ansible_project_dir}/.unixid
+            fi
+        fi
+        COMPREPLY=($( compgen -W "${all_arguments}" -- $cur ) )
+        return
+    fi
+}
+
+function execute-csshx() {
+    numargs=$#
+    var_hostpattern=none
+    var_unixid=none
+    for ((i=1 ; i <= numargs ; i++))
+    do
+        if [[ "x$1" == "x" ]];  then
+            break
+        fi
+        case "$1" in
+            --unixid)
+                var_unixid=$2
+                shift 2
+                ;;
+            --hostpattern)
+                shift
+                echo $@
+                var_hostpattern=$@
+                break
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                echo "Not implemented: $1" >&2
+                return 1
+                ;;
+        esac
+    done
+    # unixid
+    if [[ "$var_unixid" == "none" ]]; then
+        echo "Error: Please provide the unixid id to login with --unixid <unixid>"
+        return 1
+    fi
+    # hostgroup
+    if [[ "$var_hostpattern" == "none" ]]; then
+        echo "Error: Please provide the hostpattern to csshX with --hostpattern <hostpattern>"
+        return 1
+    fi
+    ${ansible_project_dir}/ext_git/ops_ansible/utils/csshX ${var_hostpattern} --login ${var_unixid}
+
+}
+
+
+complete -F _executeansibleplaybook execute-ansible-playbook
+complete -F _executeansibleping execute-ansible-ping
+complete -F _executeansiblemodule execute-ansible-module
+complete -F _executecsshx execute-csshx

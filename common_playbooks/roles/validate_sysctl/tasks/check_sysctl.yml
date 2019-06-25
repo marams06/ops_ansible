@@ -1,0 +1,24 @@
+
+
+- name: "Check sysctl item {{sysctl_item.key}}"
+  shell: sysctl -n {{sysctl_item.key}}
+  become: yes
+  register: check_sysctl_item
+  ignore_errors: yes
+
+- name: Report sysctl check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_sysctl:failed:{{sysctl_item.key}}:required:{{sysctl_item.value}}:current:{{check_sysctl_item.stdout}}"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (check_sysctl_item.failed == false ) and (check_sysctl_item.stdout != sysctl_item.value )
+- name: Report failed sysctl check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_sysctl:failed:{{sysctl_item.key}}:incorrect sysctl item"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (check_sysctl_item.failed == true )

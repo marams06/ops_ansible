@@ -1,0 +1,26 @@
+
+
+
+
+- name: Get the wheel name
+  set_fact:
+    wheel_name: "{{ python3wheels.key }}"
+  become: yes
+  changed_when: false
+
+- name: Get the wheel file
+  set_fact:
+    wheel_file_name: "{{python3wheels.value }}"
+  become: yes
+  changed_when: false
+
+- debug:
+    msg: "Package: {{wheel_name}}:{{wheel_file_name}}"
+
+- name: Install python3 package
+  shell: /ngs/app/amlbin/python3/bin/pip3 install --quiet --no-index --find-links=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python3/wheels {{wheel_name}}
+  register: wheel_install_msg
+  ignore_errors: yes
+
+- debug:
+    msg: "{{ wheel_install_msg }}"

@@ -1,0 +1,15 @@
+
+
+
+- name: Cleanup existing /temp/ansible_artifacts.tar.gz
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/ansible_artifacts.tar.gz state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/temp
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/ansible_artifacts.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/temp .
+  become: no
+  run_once: true
+  delegate_to: localhost

@@ -1,0 +1,4 @@
+
+- name: remove user's crontab
+  shell: crontab -r
+  ignore_errors: yes

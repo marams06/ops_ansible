@@ -1,0 +1,11 @@
+####################################################
+# Overrides for salt minion configuration
+####################################################
+
+grains:
+ devops_project: {{ bootstrap_definition_content.saltconf.project_name }}
+ devops_env: {{ bootstrap_definition_content.saltconf.project_env }}
+ user_home: /ngs/app/{{ PROJECT_USERNAME }}
+ devops_user: {{ PROJECT_USERNAME }}
+
+enable_gpu_grains: False

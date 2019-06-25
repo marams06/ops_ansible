@@ -1,0 +1,37 @@
+# Help start
+#  This ansible playbook setsup gpg ring in home directory
+#  in directory ~/.salt/config/gpgkeys
+#
+# Help end
+
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  pre_tasks:
+    - debug: msg="=======  Setup saltmaster gpg ring  ======"
+  tasks:
+    - name: "Create dir : /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys"
+      file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys state=directory mode=0700
+      run_once: true
+      become: yes
+
+    - name: "Initialize gpg daemon"
+      shell: gpg-agent --daemon --use-standard-socket --homedir /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys
+      become: yes
+      args:
+        creates: "/ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys/pubring.gpg"
+      register: gpg_daemon
+    - debug:
+        msg: "{{gpg_daemon}}"
+
+    - name: "Initialize /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys"
+      shell: gpg --homedir /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys --list-keys
+      become: yes
+      register: gpg_key_lists
+      args:
+        creates: "/ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys/pubring.gpg"
+    - debug:
+        msg: "{{gpg_key_lists}}"

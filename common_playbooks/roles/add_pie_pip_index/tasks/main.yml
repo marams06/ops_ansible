@@ -1,0 +1,13 @@
+
+
+- name: Create dir /ngs/app/{{ PROJECT_USERNAME }}/{{item}}
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/{{item}}" state=directory recurse=yes
+  become: yes
+  with_items:
+    - .pip
+
+- name: Update {{item}}
+  template: src={{item}}.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.pip/{{item}} mode=0660
+  become: yes
+  with_items:
+    - pip.conf

@@ -1,0 +1,24 @@
+
+
+
+- name: Set the rpm name
+  set_fact:
+    rpm_name: "{{rpms.value | basename }}"
+  become: no
+  delegate_to: localhost
+  changed_when: false
+
+- debug:
+    msg: "Downloading {{rpm_name}}"
+  changed_when: false
+
+- name: Download artifact {{rpms.key}}
+  get_url:
+    url: https://artifacts.apple.com/aml-infraeng-release-local/{{ artifactory_details.maven_root }}/{{rpms.value}}
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/{{rpm_name}}"
+    mode: 0740
+    headers: "X-JFrog-Art-Api:{{artifactory_details.reader_key}}"
+    validate_certs: no
+  become: no
+  run_once: true
+  delegate_to: localhost

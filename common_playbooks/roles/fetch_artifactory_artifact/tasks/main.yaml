@@ -1,0 +1,25 @@
+
+
+- name: setup artifactory data
+  set_fact:
+    artifactory_data: "{{ lookup('eyaml_file', '{{EXT_GIT_PATH}}/ops_invoke/secenv/artifactory.eyaml') }}"
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+  no_log: True
+
+- name: Extract artifactory information
+  set_fact:
+    artifactory_details: "{{ artifactory_data.artifactory['amlinfra'] }}"
+  changed_when: false
+  no_log: True
+
+- name: Download artifact {{ARGDATA}}
+  get_url:
+    url: https://artifacts.apple.com/aml-infraeng-release-local/{{ artifactory_details.maven_root }}/{{ARGDATA}}
+    dest: "{{ARGDATA|basename}}"
+    mode: 0640
+    headers: "X-JFrog-Art-Api:{{artifactory_details.reader_key}}"
+    validate_certs: no
+  become: yes

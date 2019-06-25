@@ -1,0 +1,4 @@
+- name: Stop saltmaster
+  shell: "sh /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/stop.sh"
+  ignore_errors: yes
+  become: yes

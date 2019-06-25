@@ -1,0 +1,19 @@
+
+
+- debug: msg="projectuser is {{projectuser}}"
+
+- name: "Check projectuser mount {{projectuser}}"
+  shell: mount | grep "/ngs/app/{{projectuser}} type" | grep vg_root
+  become: yes
+  register: check_mount
+  ignore_errors: yes
+
+
+- name: Report projectuser mount check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_projectuser_mount:failed:{{projectuser}}"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (check_mount.failed == true)

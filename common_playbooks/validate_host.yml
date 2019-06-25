@@ -1,0 +1,47 @@
+# Help start
+#  This ansible playbook tries to validate the host configuration
+#  and utilizes the group variables defined in ansible host directory.
+#
+#  Example:
+#  execute-ansible-playbook-common --playbook validate_host.yml --unixid e0301375
+#                                  --sudoid lampt --ansiblehosts saltmaster
+#                                  --environment uat
+#
+# Help end
+
+- hosts: all
+  serial: 10
+  gather_facts: yes
+  ignore_errors: yes
+  any_errors_fatal: false
+  max_fail_percentage: 100
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Validating host  ======"
+    - name: Create {{ SALT_PROJECT_GIT_PATH }}/temp
+      shell: mkdir -p  {{ SALT_PROJECT_GIT_PATH }}/temp
+      become: no
+      run_once: true
+      delegate_to: localhost
+    - name: Touch {{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt
+      shell: touch {{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt
+      args:
+        creates: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      become: no
+      run_once: true
+      delegate_to: localhost
+  roles:
+    - { role: validate_amlbin , when: (validation_ansible.amlbin == True)}
+    - { role: validate_disks , when: (validation_ansible.disks == True)}
+    - { role: validate_mount , when: (validation_ansible.mount == True)}
+    - { role: validate_hugepages , when: (validation_ansible.hugepages == True)}
+    - { role: validate_ulimit , when: (validation_ansible.ulimit == True)}
+    - { role: validate_swappiness , when: (validation_ansible.swappiness == True)}
+    - { role: validate_keytabs , when: (validation_ansible.keytabs == True)}
+    - { role: validate_cmagent , when: (validation_ansible.cmagent == True)}
+    - { role: validate_kdccache , when: (validation_ansible.kdccache == True)}
+    - { role: validate_sysctl , when: (validation_ansible.sysctl == True)}
+    - { role: validate_zing , when: (validation_ansible.zing == True)}
+    - { role: validate_kernel_boot_param , when: (validation_ansible.kernel_boot_param == True)}

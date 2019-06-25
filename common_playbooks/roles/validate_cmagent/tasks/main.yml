@@ -1,0 +1,30 @@
+
+
+
+- block:
+  - name: Check /ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent
+    stat:
+      path: /ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent
+    register: stat_result
+    become: yes
+    ignore_errors: yes
+  - name: Report cloudera-scm-agent check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_scmagent_installed:failed:/ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (stat_result.failed == true)
+  - name: check cmagent process
+    shell: cmagent status >/dev/null
+    register: nr_cmagent
+    ignore_errors: yes
+  - name: Report cmagent process check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_cmagent_process:failed"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (nr_cmagent.failed == true)

@@ -1,0 +1,30 @@
+
+- name: copy salt_extension.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/salt_extension.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_extension.tar.gz mode=0777
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot state=absent
+  become: yes
+
+- name: Create /ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot state=directory
+  become: yes
+
+- name: Copy salt_extension.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_extension.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot/salt_extension.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Extract salt_extension.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot; tar xzf salt_extension.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Cleanup salt_extension.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot/salt_extension.tar.gz state=absent
+  become: yes
+
+- name: Cleanup salt_extension.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_extension.tar.gz state=absent
+  become: no

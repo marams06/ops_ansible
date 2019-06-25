@@ -1,0 +1,31 @@
+
+
+- name: copy salt_deployenv.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/salt_deployenv.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_deployenv.tar.gz mode=0777
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv state=absent
+  become: yes
+
+- name: Create /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv state=directory
+  become: yes
+
+- name: Copy salt_deployenv.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_deployenv.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/salt_deployenv.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Extract salt_deployenv.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv; tar xzf salt_deployenv.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Cleanup salt_deployenv.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor/deployenv/salt_deployenv.tar.gz state=absent
+  become: yes
+
+- name: Cleanup salt_extension.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_deployenv.tar.gz state=absent
+  become: no

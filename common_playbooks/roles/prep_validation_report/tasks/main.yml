@@ -1,0 +1,16 @@
+
+- name: Cleanup {{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Create empty report file
+  file:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    state: touch
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: False

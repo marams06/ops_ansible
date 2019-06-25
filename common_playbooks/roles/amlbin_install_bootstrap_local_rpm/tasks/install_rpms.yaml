@@ -1,0 +1,31 @@
+
+
+- name: Get the rpm file name
+  set_fact:
+    rpm_file_name: "{{rpms.value | basename }}"
+  become: yes
+  changed_when: false
+
+- name: Get the rpm name
+  set_fact:
+    rpm_ver_name: "{{rpm_file_name | splitext | first }}"
+  become: yes
+  changed_when: false
+
+- debug:
+    msg: "Checking {{rpm_ver_name}}"
+
+- name: register rpm check
+  shell: rpm --dbpath /ngs/app/amlbin/rpmdb/.rpm -q {{rpm_ver_name}}
+  register: rpm_ver_name_check
+  ignore_errors: yes
+  changed_when: False
+
+- debug:
+    msg: "Will need to install {{rpms.value}}"
+  when: rpm_ver_name_check.rc == 1
+
+- name: Install rpm
+  shell: rpm --dbpath /ngs/app/amlbin/rpmdb/.rpm --nodeps --replacefiles -Uvh  /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/rpms/{{rpm_file_name}}
+  register: rpm_install_action
+  when: (rpm_ver_name_check.rc == 1)

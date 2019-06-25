@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+  serial: 5
+  gather_facts: no
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  roles:
+    - sshkeygen

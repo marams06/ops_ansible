@@ -1,0 +1,30 @@
+
+
+
+
+
+
+- name: Get the wheel name
+  set_fact:
+    wheel_name: "{{ python3wheels.key }}"
+  become: yes
+  changed_when: false
+
+- name: Get the wheel file
+  set_fact:
+    wheel_file_name: "{{python3wheels.value | basename }}"
+  become: yes
+  changed_when: false
+
+- debug:
+    msg: "Package: {{wheel_name}}:{{wheel_file_name}}"
+
+
+- name: Download python3 package for {{wheel_name}}
+  get_url:
+    url: https://artifacts.apple.com/aml-infraeng-release-local/{{ artifactory_details.maven_root }}/{{python3wheels.value}}
+    dest: /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python3/wheels/{{wheel_file_name}}
+    mode: 0740
+    headers: "X-JFrog-Art-Api:{{artifactory_details.reader_key}}"
+    validate_certs: no
+  become: yes

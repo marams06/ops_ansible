@@ -1,0 +1,23 @@
+
+- block:
+  - name: Check if zing is installed
+    shell: '/bin/rpm -q zing-zst'
+    register: zing_pkg
+    become: yes
+    ignore_errors: yes
+  - name: Report zing package check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_amlbin_zing_pkg_installed:failed:zing-zst package not installed"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (zing_pkg.failed == true)
+  - name: Report zing package version check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_amlbin_zing_pkg_installed:failed:zing-zst version {{zing_pkg_version}} not installed"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (zing_pkg.failed == false and zing_pkg.stdout != zing_pkg_version)

@@ -1,0 +1,18 @@
+# Help start
+#  This ansible playbook can test connectivity to remote ansible host
+#  by running remote ls command.
+# Help end
+
+
+---
+- hosts: all
+  gather_facts: false
+  pre_tasks:
+    - debug: msg="=======  Testing ansible connectivity to host/sudoid !  ======"
+  tasks:
+    - name: show home directory
+      shell: "pwd; ls -lrt"
+      become: yes
+
+  
+

@@ -1,0 +1,24 @@
+
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/files
+  file: path=/tmp/{{ UNIX_ID }}/ansible/files state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible/files
+  file: path=/tmp/{{ UNIX_ID }}/ansible/files state=directory mode=0777
+  become: no
+
+
+- name: copy {{ARGDATA }}
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/{{ARGDATA }}" dest=/tmp/{{ UNIX_ID }}/ansible/files/{{ARGDATA }} mode=0777
+  become: no
+
+- name: Copy {{ARGDATA }}
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/files/{{ARGDATA }} {{ ansible_env.HOME }}/{{ARGDATA }}
+  register: temp_file_copy_info
+  become: yes
+
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/saltfiles
+  file: path=/tmp/{{ UNIX_ID }}/ansible/files state=absent
+  become: no

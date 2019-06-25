@@ -1,0 +1,17 @@
+#!/bin/bash
+
+###########################################
+## Salt Minion Silent Status Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+/ngs/app/amlbin/python2/bin/saltminion_pid=$(pgrep -f 'salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+  exit 0
+else
+  exit 1
+fi

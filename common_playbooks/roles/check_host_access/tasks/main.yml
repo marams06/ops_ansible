@@ -1,0 +1,67 @@
+
+
+
+- name: Perform ssh check
+  block:
+    - name: Note current kernel version
+      command: uname -mrs
+      register: uname_result_old
+    - name: Note current user
+      shell: 'getent passwd {{ UNIX_ID }} | cut -d ":" -f5 | cut -d "," -f1'
+      register: UNIX_ID_NAME
+  rescue:
+    - name: Report ssh check
+      lineinfile:
+        dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+        line: "{{inventory_hostname}}:failed: ssh check"
+        insertafter: EOF
+      delegate_to: localhost
+      become: no
+
+- name: Perform sudo check
+  block:
+    - name: show sudo home directory
+      shell: "pwd; ls -lrt"
+      become: yes
+      register: sudo_check
+  rescue:
+    - name: Report sudo check
+      lineinfile:
+        dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+        line: "{{inventory_hostname}}:failed: sudo check: {{ ansible_user_id }}"
+        insertafter: EOF
+      delegate_to: localhost
+      become: no
+
+
+- name: Perform amlbin check
+  block:
+    - name: Check /ngs/app/amlbin is writable
+      shell: 'touch /ngs/app/amlbin/.checkwritable'
+      register: touch_result
+      become: yes
+  rescue:
+    - name: Report amlbin check
+      lineinfile:
+        dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+        line: "{{inventory_hostname}}:failed: amlbin check: not writable"
+        insertafter: EOF
+      delegate_to: localhost
+      become: no
+
+
+- name: Perform amlbin bootstrap check
+  block:
+    - name: Check /ngs/app/amlbin/python2/bin/python
+      stat:
+        path: /ngs/app/amlbin/python2/bin/python
+      register: stat_result
+      become: yes
+  rescue:
+    - name: Report amlbin bootstrap check
+      lineinfile:
+        dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+        line: "{{inventory_hostname}}:failed: amlbin bootstrap: not complete"
+        insertafter: EOF
+      delegate_to: localhost
+      become: no

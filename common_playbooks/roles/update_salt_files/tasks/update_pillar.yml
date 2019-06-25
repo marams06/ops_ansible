@@ -1,0 +1,54 @@
+
+- name: copy salt_pillars_all.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/salt_pillars_all.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_pillars_all.tar.gz mode=0777
+  become: no
+
+- name: copy salt_pillars.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/salt_pillars.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_pillars.tar.gz mode=0777
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar state=absent
+  become: yes
+
+- name: Create /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/all
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/all state=directory
+  become: yes
+
+- name: Copy salt_pillars_all.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_pillars_all.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/all/salt_pillars_all.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Copy salt_pillars.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_pillars.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/salt_pillars.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Extract salt_pillars_all.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/all; tar xzf salt_pillars_all.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Extract salt_pillars.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar; tar xzf salt_pillars.tar.gz
+  register: temp_extract_info
+  become: yes
+
+
+- name: Cleanup salt_pillars_all.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/all/salt_pillars_all.tar.gz state=absent
+  become: yes
+
+- name: Cleanup salt_pillars.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar/salt_pillars.tar.gz state=absent
+  become: yes
+
+
+- name: Cleanup salt_pillars_all.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_pillars_all.tar.gz state=absent
+  become: no
+
+- name: Cleanup salt_pillars.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_pillars.tar.gz state=absent
+  become: no

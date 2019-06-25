@@ -1,0 +1,11 @@
+####################################################
+# Overrides for salt minion configuration
+####################################################
+
+root_dir: /ngs/app/{{ PROJECT_USERNAME }}/.salt
+pki_dir: /ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/minion
+
+# Controls the verbosity of state runs
+file_roots:
+ base:
+  - /ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot_minion

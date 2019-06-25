@@ -1,0 +1,33 @@
+# Help start
+#  This ansible playbook setsup rpm database in user space and
+#  install key user rpms in /ngs/app/amlbin
+#
+#  RPMs installed:
+#     Python2, Python3
+#     OpenSSL
+#     Carbon-C-relay
+#     Others
+#
+# Help end
+
+- hosts: all
+  serial: 5
+  gather_facts: yes
+  ignore_errors: yes
+  any_errors_fatal: false
+  max_fail_percentage: 100
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Setting up devops environment!  ======"
+  roles:
+    - { role: prep_read_bootstrap }
+    - { role: r_setup_local_temp_storage, when: (bootstrap_definition_content.ansibleprops.collect_artifacts_locally == True) }
+    - { role: r_collect_rpms_local, when: (bootstrap_definition_content.ansibleprops.collect_artifacts_locally == True) }
+    - { role: r_archive_local_temp, when: (bootstrap_definition_content.ansibleprops.collect_artifacts_locally == True) }
+    - { role: r_prepare_remote_temp_dir }
+    - { role: amlbin_setup_rpmdb }
+    - { role: r_upload_rpm_archive, when: (bootstrap_definition_content.ansibleprops.collect_artifacts_locally == True) }
+    - { role: amlbin_install_bootstrap_local_rpm, when: (bootstrap_definition_content.ansibleprops.collect_artifacts_locally == True) }
+    - { role: amlbin_install_bootstrap_artifactory_rpm, when: (bootstrap_definition_content.ansibleprops.collect_artifacts_locally == False) }

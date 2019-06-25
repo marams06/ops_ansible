@@ -1,0 +1,22 @@
+
+- include_tasks: install_rpms.yaml
+  with_dict: "{{bootstrap_definition_content.rpms_oel6}}"
+  loop_control:
+    loop_var: rpms
+  when: (ansible_distribution_major_version == '6')
+
+- include_tasks: install_rpms.yaml
+  with_dict: "{{bootstrap_definition_content.rpms_oel7}}"
+  loop_control:
+    loop_var: rpms
+  when: (ansible_distribution_major_version == '7')
+
+
+- name: record all installed rpms
+  shell: rpm --dbpath /ngs/app/amlbin/rpmdb/.rpm -qa
+  register: installed_rpm_info
+  ignore_errors: yes
+  changed_when: False
+
+- debug:
+    msg: "{{installed_rpm_info}}"

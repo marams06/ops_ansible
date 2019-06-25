@@ -1,0 +1,16 @@
+# Help start
+#  This ansible playbook create new set of gpg keys
+#  for salt gpgring
+#
+# Help end
+
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  pre_tasks:
+    - debug: msg="=======  Download saltmaster gpg keys  ======"
+  roles:
+    - {role: saltmaster_fetch_saltgpg}

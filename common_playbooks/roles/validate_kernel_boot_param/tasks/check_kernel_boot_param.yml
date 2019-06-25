@@ -1,0 +1,15 @@
+
+- block:
+  - name: "Check sysctl item {{kernel_boot_param_item.key}}"
+    shell: 'cat /proc/cmdline  | grep -q {{kernel_boot_param_item.key}}={{kernel_boot_param_item.value}}'
+    become: yes
+    register: check_kernel_boot_param_item
+    ignore_errors: yes
+  - name: Report failed check_kernel_boot_param_item check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_kernel_boot_param:failed:{{kernel_boot_param_item.key}}:{{kernel_boot_param_item.value}}"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (check_kernel_boot_param_item.failed == true )

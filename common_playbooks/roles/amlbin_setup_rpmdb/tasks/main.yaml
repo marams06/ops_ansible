@@ -1,0 +1,20 @@
+
+
+- stat: path="/ngs/app/amlbin/rpmdb/.rpm/Packages"
+  register: userrpm_file
+  become: yes
+
+- stat: path="/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops"
+  register: devops_role_directory
+  become: yes
+
+- name: Create /ngs/app/amlbin/rpmdb
+  file: path=/ngs/app/amlbin/rpmdb state=directory
+  become: yes
+  when: userrpm_file.stat.exists == False
+
+- name: Initialize user rpm db as it does not exist
+  shell: rpm --initdb --dbpath /ngs/app/amlbin/rpmdb/.rpm
+  become: yes
+  when: userrpm_file.stat.exists == False
+

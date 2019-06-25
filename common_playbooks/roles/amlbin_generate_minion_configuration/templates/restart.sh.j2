@@ -1,0 +1,30 @@
+#!/bin/bash
+
+###########################################
+## Salt Minion Silent Restart Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+saltminion_pid=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+	echo "Process running: $saltminion_pid"
+  pkill -f '/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf'
+  echo "Process killed: $saltminion_pid"
+else
+	rm -f /ngs/app/{{ PROJECT_USERNAME }}/.salt/pid/minion/saltminion.pid
+fi
+
+/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf --daemon --pid-file=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pid/minion/saltminion.pid
+sleep 1
+saltminion_pid_new=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf')
+rcn=$?
+if [ "$rcn" = "0" ]; then
+	echo "Salt minion started with processes: $saltminion_pid_new"
+	exit 0
+else
+	echo "Salt minion failer to restart."
+fi

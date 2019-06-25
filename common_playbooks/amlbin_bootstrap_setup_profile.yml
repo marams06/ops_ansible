@@ -1,0 +1,20 @@
+
+
+# Help start
+#  This sets up a devops profile in /ngs/app/amlbin
+#  Source this environment when using this configuration
+#
+#
+# Help end
+
+- hosts: all
+  serial: 5
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Setting up devops environment!  ======"
+  roles:
+    - { role: prep_read_bootstrap }
+    - { role: amlbin_create_bash_profile }

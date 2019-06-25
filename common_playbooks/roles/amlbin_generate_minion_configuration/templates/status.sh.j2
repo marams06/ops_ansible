@@ -1,0 +1,19 @@
+#!/bin/bash
+
+###########################################
+## Salt Minion Status Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+saltminion_pid=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+	echo "Process already running: $saltminion_pid"
+  exit 0
+else
+	echo "Salt minion is not running on this host"
+  exit 1
+fi

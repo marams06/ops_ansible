@@ -1,0 +1,31 @@
+
+
+- name: read bootstrap definition file content
+  set_fact:
+    bootstrap_definition_content: "{{ lookup('template', '{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml', convert_data=false) | from_yaml }}"
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+  no_log: True
+
+- name: setup artifactory data
+  set_fact:
+    artifactory_data: "{{ lookup('eyaml_file', '{{EXT_GIT_PATH}}/ops_invoke/secenv/artifactory.eyaml') }}"
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+  no_log: True
+
+- name: Extract artifactory information
+  set_fact:
+    artifactory_details: "{{ artifactory_data.artifactory['amlinfra'] }}"
+  changed_when: false
+  no_log: True
+
+- name: Test artifactory_data variable
+  debug: msg="We can install master salt on this host"
+  when: "'saltmaster' in group_names and bootstrap_definition_content['saltconf']['master_service_id'] == PROJECT_USERNAME"
+  changed_when: false
+  

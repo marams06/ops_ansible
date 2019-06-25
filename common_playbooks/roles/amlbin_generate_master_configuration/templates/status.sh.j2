@@ -1,0 +1,19 @@
+#!/bin/bash
+
+###########################################
+## Salt master Status Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+saltmaster_pid=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-master -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+	echo "Process already running: $saltmaster_pid"
+  exit 0
+else
+	echo "Salt master is not running on this host"
+  exit 1
+fi

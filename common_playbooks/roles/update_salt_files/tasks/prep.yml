@@ -1,0 +1,9 @@
+
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/saltfiles
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible/saltfiles
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles state=directory mode=0777
+  become: no

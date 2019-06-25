@@ -1,0 +1,17 @@
+
+
+- block:
+  - name: Check /tmp/{{kdc_ticket}}
+    stat:
+      path: /tmp/{{kdc_ticket}}
+    register: stat_result
+    become: yes
+    ignore_errors: yes
+  - name: Report kdc ticket check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_kdc_ticket:failed:/tmp/{{kdc_ticket}}"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (stat_result.failed == true)

@@ -1,0 +1,48 @@
+# Help start
+#  This ansible playbook is designed to test if you have the
+#  required environment files, bootstrap files and others for ansible to run effectively.
+#  It should produce a report in the end for
+#
+#  bootstrap definition file
+#  common ansible vars file
+#  environ specific ansible vars file
+#  sudoer specific ansible vars file
+#
+# Help end
+
+
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  become: no
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+      common_ansible_vars_file: "{{ SALT_PROJECT_GIT_PATH }}/ansible/common_ansible_vars.yaml"
+      environ_ansible_vars_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/ansible/environ_specific_ansible_vars.yaml"
+  pre_tasks:
+    - debug: msg="=======  Testing project support for ansible playbooks !  ======"
+  tasks:
+    - name: "Check: bootstrap definition file"
+      local_action: stat path={{ bootstrap_definition_file }}
+      register: stat_bootstrap_definition_file
+    - name: "Check: common ansible vars file"
+      local_action: stat path={{ common_ansible_vars_file }}
+      register: stat_common_ansible_vars_file
+    - name: "Check: environ specific ansible vars file"
+      local_action: stat path={{ environ_ansible_vars_file }}
+      register: stat_environ_ansible_vars_file
+
+    - fail:
+        msg: "bootstrap definition file not available: {{ ANSIBLE_PROJECT_ENV }}: {{ bootstrap_definition_file }}"
+      when: stat_bootstrap_definition_file.stat.exists == False
+      ignore_errors: yes
+    - fail:
+        msg: "Common ansible vars not available: {{ common_ansible_vars_file }}"
+      when: stat_common_ansible_vars_file.stat.exists == False
+      ignore_errors: yes
+    - fail:
+        msg: "Environment specific ansible vars not available: {{ environ_ansible_vars_file }}"
+      when: stat_environ_ansible_vars_file.stat.exists == False
+      ignore_errors: yes

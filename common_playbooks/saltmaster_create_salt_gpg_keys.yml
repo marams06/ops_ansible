@@ -1,0 +1,31 @@
+# Help start
+#  This ansible playbook create new set of gpg keys
+#  for salt gpgring
+#
+# Help end
+
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  pre_tasks:
+    - debug: msg="=======  Setup saltmaster gpg keys  ======"
+  tasks:
+    - name: "Cleanup /tmp/salt/gpgkeys"
+      file: path=/tmp/salt/gpgkeys state=absent
+      run_once: true
+      become: no
+
+    - name: "Create dir : /tmp/salt/gpgkeys"
+      file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys state=directory mode=0700
+      run_once: true
+      become: no
+
+    - name: "Initialize gpg keys"
+      shell: gpg --gen-key --homedir /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys
+      become: yes
+      register: gpg_keys
+    - debug:
+        msg: "{{gpg_keys}}"

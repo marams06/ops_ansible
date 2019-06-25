@@ -1,0 +1,20 @@
+#!/bin/bash
+
+###########################################
+## Salt Minion Stop Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+saltminion_pid=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+	echo "Process running: $saltminion_pid"
+  pkill -f '/ngs/app/amlbin/python2/bin/salt-minion -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf'
+  echo "Process killed: $saltminion_pid"
+else
+	rm -f /ngs/app/{{ PROJECT_USERNAME }}/.salt/pid/minion/saltminion.pid
+	echo "Salt minion is already dead."
+fi

@@ -1,0 +1,17 @@
+# Help start
+#  This ansible playbook updates command framework to remote host
+#  This can be used to test before commiting the changes.
+#
+# Help end
+
+
+- hosts: all
+  serial: 5
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Updating command framework  ======"
+  roles:
+    - { role: update_command_framework }

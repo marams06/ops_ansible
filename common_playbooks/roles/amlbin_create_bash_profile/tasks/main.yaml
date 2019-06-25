@@ -1,0 +1,17 @@
+- name: Update ops profile
+  template: src=opsprofile dest=/ngs/app/amlbin/profile mode=0755
+
+- name: Create libevtlog.so.0
+  shell: "[[ ! -f /ngs/app/amlbin/lib64/libevtlog.so.0 ]] && ln -s  /ngs/app/amlbin/lib64/libevtlog.so /ngs/app/amlbin/lib64/libevtlog.so.0"
+  become: yes
+  ignore_errors: yes
+
+- name: Create libnet.so.1
+  shell: "[[ ! -f /ngs/app/amlbin/lib64/libnet.so.1 ]] && ln -s /ngs/app/amlbin/lib64/libnet.so /ngs/app/amlbin/lib64/libnet.so.1"
+  become: yes
+  ignore_errors: yes
+
+- name: Create libjvm.so
+  shell: "[[ ! -f /ngs/app/amlbin/lib64/libjvm.so ]] &&  cp /ngs/app/{{ PROJECT_USERNAME }}/install/jdk1.8.0_65/jre/lib/amd64/server/libjvm.so /ngs/app/amlbin/lib64/"
+  become: yes
+  ignore_errors: yes

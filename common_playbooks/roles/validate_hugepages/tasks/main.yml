@@ -1,0 +1,14 @@
+
+
+- name: check /proc/sys/vm/nr_hugepages
+  shell: cat /proc/sys/vm/nr_hugepages
+  register: nr_hugepages
+
+- name: Report projectuser mount check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_hugepages:failed:{{nr_hugepages.stdout}}"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (nr_hugepages.stdout != "0")

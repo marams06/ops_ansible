@@ -1,0 +1,21 @@
+# Help start
+#  This ansible playbook can update salt pillar, states, deployenv and nodegroups from local changes.
+#  You can utilize this to test changes before commiting them to salt repo
+#
+#  Example:
+#  execute-ansible-playbook-common --playbook validate_host.yml --unixid e0301375
+#                                  --sudoid lampt --ansiblehosts saltmaster
+#                                  --environment uat
+#
+# Help end
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Updating salt states and pillars  ======"
+  roles:
+    - { role: update_salt_files }

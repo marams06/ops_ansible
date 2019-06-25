@@ -1,0 +1,20 @@
+
+- block:
+  - name: Check /ngs/app/{{ PROJECT_USERNAME }}/install/bin/kdc_cache_warming.sh
+    stat:
+      path: /ngs/app/{{ PROJECT_USERNAME }}/install/bin/kdc_cache_warming.sh
+    register: stat_result
+    become: yes
+    ignore_errors: yes
+  - name: Report kdc_cache_warming script  check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_kdccache_script:failed:/ngs/app/{{ PROJECT_USERNAME }}/install/bin/kdc_cache_warming.sh"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (stat_result.failed == true)
+  - include_tasks: check_ticket.yml
+    with_list: "{{all_kdc_tickets}}"
+    loop_control:
+      loop_var: kdc_ticket

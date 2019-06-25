@@ -1,0 +1,119 @@
+
+- name: Cleanup local git temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Create local git temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=directory
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Cleanup remote temp directory
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+
+- name: Create remote temp directory
+  file: path=/tmp/{{ UNIX_ID }}/ansible state=directory mode=0777 recurse=yes
+  become: no
+
+- name: Create remote temp directory
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/saltpki state=directory
+  become: yes
+
+- name: archive salt gpg directory
+  shell: tar czvf /ngs/app/{{ PROJECT_USERNAME }}/saltgpg.tar.gz -C /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys .
+  register: archive_salt_gpg
+  become: yes
+
+- debug:
+  msg: "{{archive_salt_gpg}}"
+
+
+- name: copy salt master gpg keys
+  shell: cp /ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/master/master*  /ngs/app/{{ PROJECT_USERNAME }}/saltpki/
+  register: cp_salt_gpg
+  become: yes
+
+- debug:
+  msg: "{{cp_salt_gpg}}"
+
+
+- name: archive salt gpg directory
+  shell: tar czvf /ngs/app/{{ PROJECT_USERNAME }}/saltpki.tar.gz -C  /ngs/app/{{ PROJECT_USERNAME }}/saltpki .
+  register: archive_salt_gpg
+  become: yes
+
+- debug:
+  msg: "{{archive_salt_gpg}}"
+
+
+
+- name: Copy the file to tmp directory - /ngs/app/{{ PROJECT_USERNAME }}/saltgpg.tar.gz
+  shell: cp /ngs/app/{{ PROJECT_USERNAME }}/saltgpg.tar.gz /tmp/{{ UNIX_ID }}/saltgpg.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- debug:
+  msg: "{{temp_file_copy_info}}"
+
+
+- name: Change permissions - /tmp/{{ UNIX_ID }}
+  shell: chmod 777 /tmp/{{ UNIX_ID }}/saltgpg.tar.gz
+  register: permission_change
+  become: yes
+
+- debug:
+  msg: "{{permission_change}}"
+
+
+- name: Copy the file to tmp directory - /ngs/app/{{ PROJECT_USERNAME }}/saltpki.tar.gz
+  shell: cp /ngs/app/{{ PROJECT_USERNAME }}/saltpki.tar.gz /tmp/{{ UNIX_ID }}/saltpki.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- debug:
+  msg: "{{temp_file_copy_info}}"
+
+
+- name: Change permissions - /tmp/{{ UNIX_ID }}
+  shell: chmod 777 /tmp/{{ UNIX_ID }}/saltpki.tar.gz
+  register: permission_change
+  become: yes
+
+- debug:
+  msg: "{{permission_change}}"
+
+
+
+
+- fetch:
+    src: /tmp/{{ UNIX_ID }}/saltgpg.tar.gz
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/saltgpg.tar.gz"
+    flat: yes
+
+- fetch:
+    src: /tmp/{{ UNIX_ID }}/saltpki.tar.gz
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/saltpki.tar.gz"
+    flat: yes
+
+
+- name: Cleanup /tmp/{{ UNIX_ID }}
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/saltgpg.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/saltgpg.tar.gz state=absent
+  become: yes
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/saltpki.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/saltpki.tar.gz state=absent
+  become: yes
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/saltpki
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/saltpki state=absent
+  become: yes

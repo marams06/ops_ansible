@@ -1,0 +1,37 @@
+
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/states
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/salt_states.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/states .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/environs/all/pillar
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/salt_pillars_all.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/environs/all/pillar .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/environs/{{ANSIBLE_PROJECT_ENV}}/pillar
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/salt_pillars.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/environs/{{ANSIBLE_PROJECT_ENV}}/pillar .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/environs/{{ANSIBLE_PROJECT_ENV}}/deployenv
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/salt_deployenv.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/environs/{{ANSIBLE_PROJECT_ENV}}/deployenv .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/ext_git/exbase
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/salt_exbase.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/ext_git/exbase .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/ext_git/amlsalt extensions
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/salt_extension.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/ext_git/amlsalt _grains _modules _renderers _states
+  become: no
+  run_once: true
+  delegate_to: localhost

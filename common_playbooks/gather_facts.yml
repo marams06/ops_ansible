@@ -1,0 +1,23 @@
+
+
+# Help start
+#  This ansible playbook tries to validate the host configuration
+#  and utilizes the group variables defined in ansible host directory.
+#
+#  Example:
+#  execute-ansible-playbook-common --playbook validate_host.yml --unixid e0301375
+#                                  --sudoid lampt --ansiblehosts saltmaster
+#                                  --environment uat
+#
+# Help end
+
+- hosts: all
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Gather host facts ======"
+  roles:
+    - { role: gather_facts }

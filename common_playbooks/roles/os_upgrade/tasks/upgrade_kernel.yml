@@ -1,0 +1,96 @@
+- name: Perform OS upgrade
+  block:
+    - name: Note current user
+      shell: 'getent passwd {{ UNIX_ID }} | cut -d ":" -f5 | cut -d "," -f1'
+      register: UNIX_ID_NAME
+    - name: "Check cm agent script"
+      stat: path=/ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent
+      register: stat_cm_agent_script
+    - name: "Check CM service script"
+      stat: path=/ngs/app/{{ PROJECT_USERNAME }}/install/bin/local_start_hadoop_roles.py
+      register: stat_cm_service_script
+    - name: Note current kernel version
+      command: uname -mrs
+      register: uname_result_old
+    - name: Display kernel version
+      debug:
+        msg: "{{uname_result_old.stdout_lines}}"
+    - name: Stop CM agent
+      shell: '/ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent hard_stop_confirmed'
+      register: scm_stop_result
+      when: stat_cm_agent_script.stat.exists == True
+    - name: upgrade kernel
+      shell: 'sudo /ngs/global/bin/update_me -c {{CRNUMBER}} -b --current'
+      register: upgrade_kernel
+      async: "3600"
+      poll: 10
+    - name: Wait for reboot after update_me
+      wait_for_connection:
+        timeout: 30
+        sleep: 5
+        delay: 300
+        connect_timeout: 60
+    - name: show uptime
+      shell: uptime
+      register: uptime_result
+    - name: run cleanup post reboot
+      shell: 'yes | sudo /ngs/global/bin/update_me --cleanup'
+    - name: Start CM agent
+      shell: '/ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent start'
+      register: cm_agent_start
+      when: stat_cm_agent_script.stat.exists == True
+    - name: wait after scm agent start
+      wait_for: timeout=120
+      when: stat_cm_agent_script.stat.exists == True
+    - name: Start Hadoop services
+      shell: '/ngs/app/amlbin/python2/bin/python /ngs/app/{{ PROJECT_USERNAME }}/install/bin/local_start_hadoop_roles.py'
+      register: hadoop_role_start
+      when: stat_cm_service_script.stat.exists == True
+    - name: Note current kernel version
+      command: uname -mrs
+      register: uname_result_new
+    - name: Note current java process
+      shell: '/ngs/app/{{ PROJECT_USERNAME }}/install/jdk1.8.0_65/bin/jps'
+      register: jps_result
+      ignore_errors: yes
+    - name: Note current scm agent process
+      shell: '/ngs/app/{{ PROJECT_USERNAME }}/opt/cloudera-manager/cm/etc/init.d/cloudera-scm-agent status'
+      register: cloudera_scm_agent_result
+      ignore_errors: yes
+    - name: Send success email
+      mail:
+        host: localhost
+        port: 25
+        subject: "OS UPGRADE: Successful: {{ ansible_fqdn }}"
+        subtype: html
+        from: "{{ ansible_result_from_email_address }}"
+        body: |
+          Executed by: <br/><br/><br/>
+          <b>APP User</b>: {{ UNIX_ID_NAME.stdout_lines }} <br/>
+          <b>Hostname:</b> {{ ansible_fqdn }} <br/><br/>
+          <b>Result</b>:<br/><br/><br/>
+          <b>Old Kernel:</b> {{ uname_result_old.stdout_lines }} <br/>
+          <b>New Kernel:</b> {{ uname_result_new.stdout_lines }} <br/>
+          <b>uptime:</b> {{ uptime_result.stdout_lines }} <br/><br/><br/>
+          <b>JPS</b>:<br/><br/>
+          {{ jps_result.stdout_lines }}<br/><br/><br/>
+          <b>scm agent</b>:<br/><br/>
+          {{ cloudera_scm_agent_result.stdout_lines}}
+        to: "{{ ansible_result_email_address }}"
+      ignore_errors: yes
+  rescue:
+    - name: Send failure email
+      mail:
+        host: localhost
+        port: 25
+        subject: "OS UPGRADE: Failed: {{ ansible_fqdn }}"
+        subtype: html
+        from: "{{ ansible_result_from_email_address }}"
+        body: |
+          Executed by: <br/><br/><br/>
+          <b>APP User</b>: {{ UNIX_ID_NAME.stdout_lines }} <br/>
+          <b>Hostname</b>: {{ ansible_fqdn }} <br/>
+          <b>Result</b>:<br/><br/><br/>
+
+        to: "{{ ansible_result_email_address }}"
+      ignore_errors: yes

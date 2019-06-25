@@ -1,0 +1,21 @@
+# Help start
+#  This ansible playbook setsup rpm database in user space and
+#  install key user rpms in /ngs/app/amlbin
+#
+#  RPMs installed:
+#     Python2, Python3
+#     OpenSSL
+#     Carbon-C-relay
+#     Others
+#
+# Help end
+
+- hosts: all
+  serial: 5
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  pre_tasks:
+    - debug: msg="=======  Fetching file from artifactory  ======"
+  roles:
+    - { role: fetch_artifactory_artifact }

@@ -1,0 +1,60 @@
+
+bootstrap_actions:
+  install_pythonwheels: True
+  remove_old_salt: False
+  create_devops_profile: True
+  install_libraries: False
+  install_rpms: True
+
+rpms_oel6:
+  openssl: rpm/oel6/amlbin_openssl_oel6-1.0.2m-1.x86_64.rpm
+  python3: rpm/oel6/amlbin_python3_oel6-3.6.3-1.x86_64.rpm
+  python2: rpm/oel6/amlbin_python2_oel6-2.7.14-1.x86_64.rpm
+  pypy3: rpm/oel6/amlbin_pypy3_oel6-5.9-1.x86_64.rpm
+  monit: rpm/oel6/amlbin_monit_oel6-5.25.0-1.x86_64.rpm
+  carboncrelay: rpm/oel6/amlbin_carboncrelay_oel6-3.2-1.x86_64.rpm
+  syslogng: rpm/oel6/amlbin_syslogng_oel6-3.9.1-1.x86_64.rpm
+  haproxy: rpm/oel6/amlbin_haproxy_oel6-1.7.9-1.x86_64.rpm
+  aide: rpm/oel6/amlbin_aide_oel6-0.15.1-1.x86_64.rpm
+  inotifytools: rpm/oel6/amlbin_inotifytools_oel6-3.14-1.x86_64.rpm
+  logrotate: rpm/oel6/amlbin_logrotate_oel6-3.8.2-1.x86_64.rpm
+  libsoudium: rpm/oel6/amlbin_libsodium_oel6-1.0.10-1.x86_64.rpm
+
+rpms_oel7:
+  openssl: rpm/oel7/amlbin_openssl_oel7-1.1.0g-1.x86_64.rpm
+  python3: rpm/oel7/amlbin_python3_oel7-3.6.3-1.x86_64.rpm
+  python2: rpm/oel7/amlbin_python2_oel7-2.7.14-1.x86_64.rpm
+  pypy3: rpm/oel7/amlbin_pypy3_oel7-5.9-1.x86_64.rpm
+  monit: rpm/oel7/amlbin_monit_oel7-5.25.0-1.x86_64.rpm
+  carboncrelay: rpm/oel7/amlbin_carboncrelay_oel7-3.2-1.x86_64.rpm
+  haproxy: rpm/oel7/amlbin_haproxy_oel7-1.7.9-1.x86_64.rpm
+  aide: rpm/oel7/amlbin_aide_oel7-0.15.1-1.x86_64.rpm
+  inotifytools: rpm/oel7/amlbin_inotifytools_oel7-3.14-1.x86_64.rpm
+  logrotate: rpm/oel7/amlbin_logrotate_oel7-3.8.2-1.x86_64.rpm
+  amlbin_libsodium: rpm/oel7/amlbin_libsodium_oel7-1.0.10-1.x86_64.rpm
+
+libraries:
+  - lib64/libsodium.so.4
+  - lib64/libsodium.so.4.5.0
+
+ansibleprops:
+  collect_artifacts_locally: False
+
+
+saltconf:
+  master_service_id: lampp
+  use_pub_key: True
+  project_name: minerva
+  project_env: prod
+  saltmaster: [rn2-lampp-lapp6007.rno.apple.com,rn2-lampp-lapp6002.rno.apple.com]
+  #saltmaster: rn2-lampp-lapp6007.rno.apple.com
+  salt_pub_key: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0yPQdxof4Rm6Q6B1qdOc
+    uea2OhAZqtrX/aqwfUWydSjxLWXtaKxCOVRh3dvchyqZNmEuCuwxtHsIjQ1uI6ys
+    pZpntyl+H6cFpZEX2c0DbqIXyiRU80+yWFNgfjdCVl9HpmhkSuH/k9LVcaENGzUh
+    Yv2URj6cS989qj/5A6c0WP8R0xKmN9TTgU3Vs/Thr9HdwOrkfw4cHIVXoCN602N0
+    gfeGvAf3wqN4JpddTAb0EXyDAEzzkY3vQuEhkPoLvk+uy3G/xGV6ZjloUozIZdmW
+    Z3kRukn69Ur2nSZaQgNU0bKh/xUNp5c1cu/Ac7SMt5w11OtXrzF/n2JDOd1qI21M
+    yQIDAQAB
+    -----END PUBLIC KEY-----

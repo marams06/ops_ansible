@@ -1,0 +1,54 @@
+
+- name: copy salt_exbase.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/salt_exbase.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_exbase.tar.gz mode=0777
+  become: no
+
+- name: copy salt_states.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/salt_states.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_states.tar.gz mode=0777
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.salt/states
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/states state=absent
+  become: yes
+
+- name: Create /ngs/app/{{ PROJECT_USERNAME }}/.salt/states/exbase
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/states/exbase state=directory
+  become: yes
+
+- name: Copy salt_exbase.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_exbase.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/states/exbase/salt_exbase.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Copy salt_states.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_states.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/states/salt_states.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Extract salt_exbase.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/states/exbase; tar xzf salt_exbase.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Extract salt_states.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/states; tar xzf salt_states.tar.gz
+  register: temp_extract_info
+  become: yes
+
+
+- name: Cleanup salt_exbase.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/states/exbase/salt_exbase.tar.gz state=absent
+  become: yes
+
+- name: Cleanup salt_states.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/states/salt_states.tar.gz state=absent
+  become: yes
+
+
+- name: Cleanup salt_exbase.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_exbase.tar.gz state=absent
+  become: no
+
+- name: Cleanup salt_states.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/salt_states.tar.gz state=absent
+  become: no

@@ -1,0 +1,36 @@
+# Help start
+#  This ansible playbook tries to validate the host status
+#  and create a report
+#
+#  Example:
+#  execute-ansible-playbook-common --playbook test_host_status.yml --unixid e0301375
+#                                  --sudoid lampt --ansiblehosts saltmaster
+#                                  --environment uat
+#
+# Help end
+
+- hosts: all
+  serial: 10
+  gather_facts: no
+  ignore_errors: yes
+  any_errors_fatal: false
+  max_fail_percentage: 100
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Validating host  ======"
+    - name: Create {{ SALT_PROJECT_GIT_PATH }}/temp
+      shell: mkdir -p  {{ SALT_PROJECT_GIT_PATH }}/temp
+      become: no
+      run_once: true
+      delegate_to: localhost
+    - name: Touch {{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt
+      shell: touch {{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt
+      args:
+        creates: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      become: no
+      run_once: true
+      delegate_to: localhost
+  roles:
+    - { role: check_host_access }

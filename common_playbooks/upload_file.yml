@@ -1,0 +1,22 @@
+# Help start
+#  This ansible playbook fetches a directory from remote host
+#  and puts it in <git directory>/temp
+#
+#  Example:
+#  execute-ansible-playbook-common --playbook fetch_remote_dir.yml --unixid e0301375
+#                                  --sudoid lampt --ansiblehosts saltmaster
+#                                  --data /ngs/app/lampt/.salt/filedistributor/gpgkeys/test
+#                                  --environment uat
+#
+# Help end
+
+
+- hosts: all
+  serial: 5
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  pre_tasks:
+    - debug: msg="=======  Setting up devops environment!  ======"
+  roles:
+    - { role: upload_file }

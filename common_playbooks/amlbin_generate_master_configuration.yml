@@ -1,0 +1,18 @@
+# Help start
+#  This ansible playbook setsup salt master configuration
+#  in directory HOME/.roles_devops/saltmaster
+#
+# Help end
+
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Setting up saltmaster configuration!  ======"
+  roles:
+    - { role: prep_read_bootstrap }
+    - { role: amlbin_generate_master_configuration , when: ('saltmaster' in group_names) and ( bootstrap_definition_content.saltconf.master_service_id == PROJECT_USERNAME )}

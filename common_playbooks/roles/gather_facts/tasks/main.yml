@@ -1,0 +1,8 @@
+
+- block:
+  - template:
+      src: templates/ansible_host_facts
+      dest: /tmp/ansible_variables
+  - fetch:
+      src: /tmp/ansible_variables
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/ansible_variables"

@@ -1,0 +1,65 @@
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/wheels
+  file: path=/tmp/{{ UNIX_ID }}/ansible/wheels state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible/wheels
+  file: path=/tmp/{{ UNIX_ID }}/ansible/wheels state=directory mode=0777
+  become: no
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/wheels/py2wheels.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/wheels/py2wheels.tar.gz state=absent
+  become: no
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/wheels/py3wheels.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/wheels/py3wheels.tar.gz state=absent
+  become: no
+
+
+- name: copy py2wheels.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/py2wheels/py2wheels.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/wheels/py2wheels.tar.gz mode=0777
+  become: no
+
+
+- name: copy py3wheels.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/py3wheels/py3wheels.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/wheels/py3wheels.tar.gz mode=0777
+  become: no
+
+
+- name: Copy py2wheels.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/wheels/py2wheels.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python2/wheels/py2wheels.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Copy py3wheels.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/wheels/py3wheels.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python3/wheels/py3wheels.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+
+- name: Extract py2wheels.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python2/wheels; tar xzf py2wheels.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Extract py3wheels.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python3/wheels; tar xzf py3wheels.tar.gz
+  register: temp_extract_info
+  become: yes
+
+
+- name: Cleanup py2wheels.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python2/wheels/py2wheels.tar.gz state=absent
+  become: yes
+
+- name: Cleanup py3wheels.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/{{ UNIX_ID }}/python3/wheels/py3wheels.tar.gz state=absent
+  become: yes
+
+- name: Cleanup py2wheels.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/wheels/py2wheels.tar.gz state=absent
+  become: no
+
+- name: Cleanup py3wheels.tar.gz
+  file: path=/tmp/{{ UNIX_ID }}/ansible/wheels/py3wheels.tar.gz state=absent
+  become: no

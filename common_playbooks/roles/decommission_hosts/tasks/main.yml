@@ -1,0 +1,6 @@
+
+
+- include_tasks: clean_crontab.yml
+- include_tasks: stop_user_process.yml
+- include_tasks: clean_all_disks.yml
+- include_tasks: clean_home_directory.yml

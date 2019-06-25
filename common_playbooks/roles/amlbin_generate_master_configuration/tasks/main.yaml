@@ -1,0 +1,95 @@
+
+- name: Create dir /ngs/app/{{ PROJECT_USERNAME }}/.salt/{{item}}
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/.salt/{{item}}" state=directory recurse=yes
+  become: yes
+  with_items:
+    - pki/master
+    - fileroot
+    - fileroot/_modules
+    - fileroot/_states
+    - fileroot/_grains
+    - fileroot/_renderers
+    - fileroot/_returners
+    - states
+    - pillar
+    - etc/salt
+    - pid/master
+    - config/gpgkeys
+    - extension
+
+- name: Create dir /ngs1/app/{{ PROJECT_USERNAME }}/.salt/{{item}}
+  file: path="/ngs1/app/{{ PROJECT_USERNAME }}/.salt/{{item}}" state=directory recurse=yes
+  become: yes
+  with_items:
+    - filedistributor
+    - filedistributor/wheels
+    - filedistributor/rpmstore
+    - filedistributor/app_artifacts
+    - filedistributor/devops
+    - filedistributor/archive
+
+- name: setup filedistributor symlink
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/.salt/filedistributor"
+        src="/ngs1/app/{{ PROJECT_USERNAME }}/.devops/saltstack/filedistributor"
+        state=link
+        force=yes
+
+- name: Create dir /ngs1/app/{{ PROJECT_USERNAME }}/.salt/{{item}}
+  file: path="/ngs1/app/{{ PROJECT_USERNAME }}/.salt/{{item}}" state=directory recurse=yes
+  become: yes
+  with_items:
+    - master/cache
+
+######### Salt master configuration ###########
+
+- name: Creates saltmaster role directory /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf/master.d
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf/master.d" state=directory recurse=yes
+  become: yes
+
+- name: Update {{item}}
+  template: src={{item}}.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/{{item}} mode=0740
+  become: yes
+  with_items:
+    - start.sh
+    - stop.sh
+    - restart.sh
+    - status.sh
+    - silentstatus.sh
+
+- name: set master configuration change variable
+  set_fact:
+    master_start_required: False
+
+- name: Update {{item}}
+  template: src={{item}}.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf/{{item}}
+  register: master_conf_changed
+  become: yes
+  with_items:
+    - master
+    - master.d/directories.conf
+    - master.d/gpg.conf
+    - master.d/grains.conf
+    - master.d/peers.conf
+    - master.d/process.conf
+    - master.d/user.conf
+    - master.d/verbose.conf
+
+- name: set variable if master configuration changed
+  set_fact:
+    master_start_required: True
+  when: "item.changed == true"
+  with_items: "{{master_conf_changed.results}}"
+
+- name: Update sec.conf
+  template: src=master.d/sec.conf.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf/master.d/sec.conf
+  register: master_conf_changed
+  when: bootstrap_definition_content.saltconf.use_pub_key == True
+
+- name: set variable if minion configuration changed
+  set_fact:
+    master_start_required: True
+  when: master_conf_changed.changed
+
+- name: restart master
+  shell: echo "restart master"
+  when: master_start_required == True

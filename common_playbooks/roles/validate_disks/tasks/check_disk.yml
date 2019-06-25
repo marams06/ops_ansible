@@ -1,0 +1,23 @@
+
+- debug: msg="diskname is {{diskname}}"
+
+- name: "Check writable {{diskname}}"
+  file:
+    dest: "/{{diskname}}/app/{{ PROJECT_USERNAME }}/.checkwritable"
+    state: touch
+  become: yes
+  register: check_writable
+  ignore_errors: yes
+
+
+#- debug: msg="{{check_writable}}"
+#  when: (check_writable.failed == true)
+
+- name: Report disk check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_writable:failed:{{diskname}}"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (check_writable.failed == true)

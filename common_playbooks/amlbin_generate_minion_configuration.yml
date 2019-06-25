@@ -1,0 +1,18 @@
+# Help start
+#  This ansible playbook setsup salt master configuration
+#  in directory HOME/.roles_devops/saltminion
+#
+# Help end
+
+
+- hosts: all
+  serial: 5
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+  pre_tasks:
+    - debug: msg="=======  Setting up saltminion configuration!  ======"
+  roles:
+    - { role: prep_read_bootstrap }
+    - { role: amlbin_generate_minion_configuration }

@@ -1,0 +1,65 @@
+
+- name: Create dir /ngs/app/{{ PROJECT_USERNAME }}/.salt/{{item}}
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/.salt/{{item}}" state=directory mode=0750 recurse=yes
+  become: yes
+  with_items:
+    - fileroot_minion
+    - etc/salt
+    - pid/minion
+    - pki/minion
+
+- name: Creates dir /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf/minion.d
+  file: path="/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf/minion.d" state=directory mode=0750 recurse=yes
+  become: yes
+
+- name: Update script /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/{{item}}
+  template: src={{item}}.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/{{item}} mode=0740
+  become: yes
+  with_items:
+    - start.sh
+    - stop.sh
+    - restart.sh
+    - status.sh
+    - silentstatus.sh
+
+- name: set minion configuration change variable
+  set_fact:
+    minion_start_required: False
+
+- name: Update {{item}}
+  template: src={{item}}.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf/{{item}}
+  register: minion_conf_changed
+  become: yes
+  with_items:
+    - minion
+    - minion.d/directory.conf
+    - minion.d/saltmaster.conf
+    - minion.d/grains.conf
+    - minion.d/id.conf
+    - minion.d/interaction.conf
+    - minion.d/user.conf
+
+- name: set variable if minion configuration changed
+  set_fact:
+    minion_start_required: True
+  when: "item.changed == true"
+  with_items: "{{minion_conf_changed.results}}"
+
+- name: Update sec.conf
+  template: src=minion.d/sec.conf.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/conf/minion.d/sec.conf
+  register: minion_conf_changed
+  when: bootstrap_definition_content.saltconf.use_pub_key == True
+
+- name: Update master_sign.pub
+  template: src=minion.d/master_sign.pub.j2 dest=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/minion/master_sign.pub
+  register: minion_conf_changed
+  when: bootstrap_definition_content.saltconf.use_pub_key == True
+
+- name: set variable if minion configuration changed
+  set_fact:
+    minion_start_required: True
+  when: minion_conf_changed.changed
+
+- name: restart minion
+  shell: echo "restart minion"
+  when: minion_start_required

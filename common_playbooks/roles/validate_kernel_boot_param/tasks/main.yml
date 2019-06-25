@@ -1,0 +1,6 @@
+
+
+- include_tasks: check_kernel_boot_param.yml
+  with_dict: "{{kernel_boot_params}}"
+  loop_control:
+    loop_var: kernel_boot_param_item

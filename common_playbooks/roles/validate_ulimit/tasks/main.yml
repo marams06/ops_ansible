@@ -1,0 +1,16 @@
+
+
+
+
+- name: check ulimit
+  shell: ulimit -a |grep "max user processes" |  awk '{print $5}'
+  register: nr_ulimit
+
+- name: Report ulimit check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_ulimit:failed:{{nr_ulimit.stdout}}:required:{{ulimit_value}}"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (nr_ulimit.stdout != ulimit_value)

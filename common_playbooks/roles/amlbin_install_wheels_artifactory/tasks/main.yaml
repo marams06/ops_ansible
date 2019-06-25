@@ -1,0 +1,53 @@
+
+
+
+
+- include_tasks: fetch_wheels_python2.yaml
+  with_dict: "{{pythonwheels_definition_content.oel6_python2_bootstrap_packages}}"
+  loop_control:
+    loop_var: python2wheels
+  when: (ansible_distribution_major_version == '6')
+
+- include_tasks: install_wheels_python2.yaml
+  with_dict: "{{pythonwheels_definition_content.oel6_python2_bootstrap_packages}}"
+  loop_control:
+    loop_var: python2wheels
+  when: (ansible_distribution_major_version == '6')
+
+- include_tasks: fetch_wheels_python3.yaml
+  with_dict: "{{pythonwheels_definition_content.oel6_python3_bootstrap_packages}}"
+  loop_control:
+    loop_var: python3wheels
+  when: (ansible_distribution_major_version == '6')
+
+- include_tasks: install_wheels_python3.yaml
+  with_dict: "{{pythonwheels_definition_content.oel6_python3_bootstrap_packages}}"
+  loop_control:
+    loop_var: python3wheels
+  when: (ansible_distribution_major_version == '6')
+
+
+
+- include_tasks: fetch_wheels_python2.yaml
+  with_dict: "{{pythonwheels_definition_content.oel7_python2_bootstrap_packages}}"
+  loop_control:
+    loop_var: python2wheels
+  when: (ansible_distribution_major_version == '7')
+
+- include_tasks: install_wheels_python2.yaml
+  with_dict: "{{pythonwheels_definition_content.oel7_python2_bootstrap_packages}}"
+  loop_control:
+    loop_var: python2wheels
+  when: (ansible_distribution_major_version == '7')
+
+- include_tasks: fetch_wheels_python3.yaml
+  with_dict: "{{pythonwheels_definition_content.oel7_python3_bootstrap_packages}}"
+  loop_control:
+    loop_var: python3wheels
+  when: (ansible_distribution_major_version == '7')
+
+- include_tasks: install_wheels_python3.yaml
+  with_dict: "{{pythonwheels_definition_content.oel7_python3_bootstrap_packages}}"
+  loop_control:
+    loop_var: python3wheels
+  when: (ansible_distribution_major_version == '7')

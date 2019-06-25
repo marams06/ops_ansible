@@ -1,0 +1,97 @@
+
+- name: Cleanup temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Create temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=directory
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Cleanup existing /temp/ops_invoke.tar.gz
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/ops_invoke.tar.gz state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/ext_git/ops_invoke
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/ops_invoke.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/ext_git/ops_invoke .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+
+- name: Cleanup existing /temp/project_commands.tar.gz
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp/project_commands.tar.gz state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Archive {{ SALT_PROJECT_GIT_PATH }}/commands
+  shell: tar czvf {{ SALT_PROJECT_GIT_PATH }}/temp/project_commands.tar.gz -C {{ SALT_PROJECT_GIT_PATH }}/commands .
+  become: no
+  run_once: true
+  delegate_to: localhost
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/commands
+  file: path=/tmp/{{ UNIX_ID }}/ansible/commands state=absent
+  become: no
+
+- name: Create /tmp/{{ UNIX_ID }}/ansible/commands
+  file: path=/tmp/{{ UNIX_ID }}/ansible/commands state=directory mode=0777
+  become: no
+
+- name: copy ops_invoke.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/ops_invoke.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/commands/ops_invoke.tar.gz mode=0777
+  become: no
+
+- name: copy project_commands.tar.gz
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/project_commands.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/commands/project_commands.tar.gz mode=0777
+  become: no
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.invoke
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.invoke state=absent
+  become: yes
+
+- name: Create /ngs/app/{{ PROJECT_USERNAME }}/.invoke
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.invoke state=directory mode=0700
+  become: yes
+
+
+- name: Copy ops_invoke.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/commands/ops_invoke.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.invoke/ops_invoke.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Copy project_commands.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/commands/project_commands.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.invoke/project_commands.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Extract ops_invoke.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.invoke; tar xzf ops_invoke.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Extract project_commands.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.invoke; tar xzf project_commands.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.invoke/ops_invoke.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.invoke/ops_invoke.tar.gz state=absent
+  become: yes
+
+- name: Cleanup /ngs/app/{{ PROJECT_USERNAME }}/.invoke/project_commands.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.invoke/project_commands.tar.gz state=absent
+  become: yes
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/commands
+  file: path=/tmp/{{ UNIX_ID }}/ansible/commands state=absent
+  become: no

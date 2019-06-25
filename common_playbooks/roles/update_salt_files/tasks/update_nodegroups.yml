@@ -1,0 +1,13 @@
+
+- name: copy nodegroup.conf
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/environs/{{ANSIBLE_PROJECT_ENV}}/nodeconf/nodegroups.conf" dest=/tmp/{{ UNIX_ID }}/ansible/saltfiles/nodegroups.conf mode=0777
+  become: no
+
+- name: Copy nodegroups.conf
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/saltfiles/nodegroups.conf /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf/master.d/nodegroups.conf
+  register: temp_file_copy_info
+  become: yes
+
+- name: Cleanup /tmp/{{ UNIX_ID }}/ansible/saltfiles/nodegroups.conf
+  file: path=/tmp/{{ UNIX_ID }}/ansible/saltfiles/nodegroups.conf state=absent
+  become: no

@@ -1,0 +1,24 @@
+###########################################
+## Overrides for salt master configuration
+## Uses environment variable
+###########################################
+
+# The root directory prepended to these options: pki_dir, cachedir,
+# sock_dir, log_file, autosign_file, autoreject_file, extension_modules,
+# key_logfile, pidfile:
+
+root_dir: /ngs/app/{{ PROJECT_USERNAME }}/.salt
+pki_dir: pki/master
+cachedir: master/cache
+
+extension_modules: extension
+
+file_roots:
+ base:
+  - /ngs/app/{{ PROJECT_USERNAME }}/.salt/fileroot
+  - /ngs/app/{{ PROJECT_USERNAME }}/.salt/states
+  - /ngs1/app/{{ PROJECT_USERNAME }}/.salt/filedistributor
+
+pillar_roots:
+ base:
+  - /ngs/app/{{ PROJECT_USERNAME }}/.salt/pillar

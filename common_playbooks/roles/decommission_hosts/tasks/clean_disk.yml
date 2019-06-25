@@ -1,0 +1,4 @@
+
+- name: remove /{{diskname}}/app/{{ PROJECT_USERNAME }} files
+  shell: 'rsync -a --delete /ngs/app/{{ PROJECT_USERNAME }}/empty_dir/ /{{diskname}}/app/{{ PROJECT_USERNAME }}/'
+  ignore_errors: yes

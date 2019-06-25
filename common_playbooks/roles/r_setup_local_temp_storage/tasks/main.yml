@@ -1,0 +1,14 @@
+
+- name: Cleanup temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=absent
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false
+
+- name: Create temp directory
+  file: path={{ SALT_PROJECT_GIT_PATH }}/temp state=directory
+  become: no
+  run_once: true
+  delegate_to: localhost
+  changed_when: false

@@ -1,0 +1,59 @@
+
+- name: Cleanup remote temp directory
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+
+- name: Create remote working temp directory
+  file: path=/tmp/{{ UNIX_ID }}/ansible/libdir state=directory mode=0777
+  become: no
+
+- name: copy saltgpg.tar.gz to /tmp for update
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/saltgpg.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/libdir/saltgpg.tar.gz mode=0777
+  become: no
+
+- name: copy saltpki.tar.gz to /tmp for update
+  copy: src="{{ SALT_PROJECT_GIT_PATH }}/temp/saltpki.tar.gz" dest=/tmp/{{ UNIX_ID }}/ansible/libdir/saltpki.tar.gz mode=0777
+  become: no
+
+- name: Create gpg directory
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys state=directory
+  become: yes
+
+- name: Create pki directory
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/master state=directory
+  become: yes
+
+- name: Copy the file from tmp directory - saltgpg.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/libdir/saltgpg.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys/saltgpg.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+- name: Copy the file from tmp directory - saltpki.tar.gz
+  shell: cp /tmp/{{ UNIX_ID }}/ansible/libdir/saltpki.tar.gz /ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/master/saltpki.tar.gz
+  register: temp_file_copy_info
+  become: yes
+
+
+- name: Extract - saltgpg.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys; tar xzf saltgpg.tar.gz
+  register: temp_extract_info
+  become: yes
+
+
+- name: Extract - saltpki.tar.gz
+  shell: cd /ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/master; tar xzf saltpki.tar.gz
+  register: temp_extract_info
+  become: yes
+
+- name: Cleanup saltgpg.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/config/gpgkeys/saltgpg.tar.gz state=absent
+  become: yes
+
+- name: Cleanup saltpki.tar.gz
+  file: path=/ngs/app/{{ PROJECT_USERNAME }}/.salt/pki/master/saltpki.tar.gz state=absent
+  become: yes
+
+- name: Cleanup remote temp directory
+  file: path=/tmp/{{ UNIX_ID }} state=absent
+  become: no
+

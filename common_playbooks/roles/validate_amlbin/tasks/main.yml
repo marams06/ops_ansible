@@ -1,0 +1,35 @@
+
+- block:
+  - name: Check /ngs/app/amlbin/python2/bin/python
+    stat:
+      path: /ngs/app/amlbin/python2/bin/python
+    register: stat_result
+    become: yes
+    ignore_errors: yes
+  - name: Report amlbin python check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_amlbin_python:failed:/ngs/app/amlbin/python2/bin/python"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (stat_result.stat.exists == false)
+
+
+- block:
+  - name: Check /ngs/app/amlbin is writable
+    shell: 'touch /ngs/app/amlbin/.checkwritable'
+    register: touch_result
+    become: yes
+    ignore_errors: yes
+  - name: Display touch_result
+    debug:
+      msg: "{{touch_result}}"
+  - name: Report amlbin python check
+    lineinfile:
+      dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+      line: "{{inventory_hostname}}:check_amlbin_writable:failed:/ngs/app/amlbin/testfile"
+      insertafter: EOF
+    delegate_to: localhost
+    become: no
+    when: (touch_result.failed == true)

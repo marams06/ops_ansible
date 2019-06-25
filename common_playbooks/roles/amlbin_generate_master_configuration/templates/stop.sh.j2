@@ -1,0 +1,20 @@
+#!/bin/bash
+
+###########################################
+## Salt master Stop Script
+## Ashish
+###########################################
+
+source /ngs/app/amlbin/profile
+
+# Check if the process is already running.
+saltmaster_pid=$(pgrep -f '/ngs/app/amlbin/python2/bin/salt-master -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf')
+rc=$?
+if [ "$rc" = "0" ]; then
+	echo "Process running: $saltmaster_pid"
+  pkill -f '/ngs/app/amlbin/python2/bin/salt-master -c /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltmaster/conf'
+  echo "Process killed: $saltmaster_pid"
+else
+	rm -f /ngs/app/{{ PROJECT_USERNAME }}/.salt/pid/master/saltmaster.pid
+	echo "Salt master is already dead."
+fi

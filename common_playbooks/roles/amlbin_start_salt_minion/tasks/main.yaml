@@ -1,0 +1,4 @@
+
+- name: Start saltminion
+  shell: "sh /ngs/app/{{ PROJECT_USERNAME }}/.roles_devops/saltminion/start.sh"
+  become: yes

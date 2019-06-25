@@ -1,0 +1,9 @@
+
+- name: remove user's processes
+  shell: pkill -f {{ PROJECT_USERNAME }}
+  ignore_errors: yes
+
+
+- name: remove diamond processes
+  shell: pkill -f diamond
+  ignore_errors: yes

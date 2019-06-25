@@ -1,0 +1,23 @@
+# Help start
+#  This ansible playbook setsup gpg ring in home directory
+#  in directory HOME/.gnupg
+#
+# Help end
+
+
+- hosts: saltmaster
+  serial: 1
+  gather_facts: yes
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+  pre_tasks:
+    - debug: msg="=======  Setup home directory gpg ring  ======"
+  tasks:
+    - name: "Initialize /ngs/app/{{ PROJECT_USERNAME }}/.gnupg"
+      shell: gpg --list-keys
+      become: yes
+      args:
+        creates: "/ngs/app/{{ PROJECT_USERNAME }}/.gnupg"
+      register: gpg_key_lists
+    - debug:
+        msg: "{{gpg_key_lists}}"

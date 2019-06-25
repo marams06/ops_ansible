@@ -1,0 +1,12 @@
+
+
+- include_tasks: clean_local.yml
+- include_tasks: archive.yml
+- include_tasks: prep.yml
+- include_tasks: update_deployenv.yml
+- include_tasks: update_nodegroups.yml
+- include_tasks: update_states.yml
+- include_tasks: update_pillar.yml
+- include_tasks: update_extensions.yml
+- include_tasks: clean_local.yml
+- include_tasks: clean_others.yml

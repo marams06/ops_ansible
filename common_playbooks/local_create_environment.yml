@@ -1,0 +1,62 @@
+# Help start
+#  This ansible playbook is designed to create
+#  new environment and empty files for your project
+#
+# Help end
+
+
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  become: no
+  vars:
+      project_env: "{{ lookup('env','ANSIBLE_PROJECT_ENV') }}"
+      project_dir: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}"
+      bootstrap_definition_file: "{{ SALT_PROJECT_GIT_PATH }}/environs/{{ ANSIBLE_PROJECT_ENV }}/saltconf/bootstrap.yaml"
+      inventory_file: "{{ SALT_PROJECT_GIT_PATH }}/ansible/inventory.cfg"
+  pre_tasks:
+    - debug: msg="=======  Testing project support for ansible playbooks !  ======"
+  tasks:
+    - fail:
+        msg: "project environment can not be none"
+      when: ANSIBLE_PROJECT_ENV == "none"
+
+    - name: "Create dir : {{ project_dir }}"
+      file: path={{ project_dir }} state=directory
+      run_once: true
+
+    - name: "Create dir : {{ project_dir }}/ansible"
+      file: path={{ project_dir }}/ansible state=directory
+      run_once: true
+
+    - name: "Create dir : {{ project_dir }}/saltconf"
+      file: path={{ project_dir }}/saltconf state=directory
+      run_once: true
+
+    - name: "Create dir : {{ project_dir }}/nodeconf"
+      file: path={{ project_dir }}/nodeconf state=directory
+      run_once: true
+
+    - name: "Create dir : {{ project_dir }}/deployenv"
+      file: path={{ project_dir }}/deployenv state=directory
+      run_once: true
+
+    - name: "Create dir : {{ project_dir }}/pillar"
+      file: path={{ project_dir }}/pillar state=directory
+      run_once: true
+
+    - name: Update {{ project_dir }}/ansible/inventory.cfg
+      command: touch {{ project_dir }}/ansible/inventory.cfg
+      args:
+        creates: "{{ project_dir }}/ansible/inventory.cfg"
+
+    - name: Update {{ project_dir }}/nodeconf/nodegroups.conf
+      shell: touch {{ project_dir }}/nodeconf/nodegroups.conf
+      args:
+        creates: "{{ project_dir }}/nodeconf/nodegroups.conf"
+
+    - name: Update {{ project_dir }}/saltconf/bootstrap.yaml
+      shell: touch {{ project_dir }}/saltconf/bootstrap.yaml
+      args:
+        creates: "{{ project_dir }}/saltconf/bootstrap.yaml"

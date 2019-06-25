@@ -1,0 +1,14 @@
+
+
+- name: check swappiness
+  shell: cat /proc/sys/vm/swappiness
+  register: nr_swappiness
+
+- name: Report swappiness check
+  lineinfile:
+    dest: "{{ SALT_PROJECT_GIT_PATH }}/temp/validation_report.txt"
+    line: "{{inventory_hostname}}:check_swappiness:failed:{{nr_swappiness.stdout}}:required:0"
+    insertafter: EOF
+  delegate_to: localhost
+  become: no
+  when: (nr_swappiness.stdout != "0")
